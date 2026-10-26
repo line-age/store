@@ -1,0 +1,19 @@
+docs/model.md
+  s_5557165b157cc9::t_1e683634f3d058 1-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "e55cba921489d7984f561ead59ec3875c714a93d",
+  "prompts": {},
+  "sessions": {
+    "s_5557165b157cc9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e318997-3295-4b1f-93f7-fc0e6e3f8002",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
