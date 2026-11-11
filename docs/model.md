@@ -42,6 +42,9 @@ erDiagram
     SOURCE ||--o{ CITATION : "cited at"
     SOURCE |o--o{ SOURCE : "contains"
     AGENT ||--o{ CLAIM : "asserted"
+    CITATION_REQUEST |o--o{ CLAIM : "produced"
+    FEATURE ||--o{ CITATION_REQUEST : "asked about"
+    AGENT ||--o{ CITATION_REQUEST : "asked"
     CLAIM ||--o{ REVIEW : ""
     REVIEW |o--o| CLAIM : "replaced_by"
     AGENT ||--o{ REVIEW : "reviewed"
@@ -102,6 +105,18 @@ erDiagram
         date end_latest
         text status "candidate | accepted | rejected"
         uuid asserted_by FK
+        uuid request_id FK "the citation request that produced it, if any"
+    }
+    CITATION_REQUEST {
+        uuid id PK
+        uuid feature_id FK
+        text_arr attribute_keys "empty = anything"
+        uuid requested_by FK "a person, or a bulk job's agent"
+        text priority "interactive | background"
+        text status "queued | running | done | failed"
+        timestamptz started_at
+        timestamptz finished_at
+        text run "model, version, cost"
     }
     CITATION {
         uuid id PK

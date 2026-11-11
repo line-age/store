@@ -50,3 +50,41 @@ API call writes:
 A person made these claims, so they are `accepted` at once. Had `trace` drawn the line,
 they would be `candidate` until reviewed. Every insert also writes a history row naming the
 agent. There is no build date, owner or diameter yet, and nothing is filled in (I-0001).
+
+### Citing
+
+Two ways to find more, and they end in the same place.
+
+**Ask AI.** A person looking at the section in `review` clicks "Ask AI". `review` records a
+`CITATION_REQUEST` (this section, anything we don't know, priority `interactive`) and has
+`cite` process it at once. `cite` gets everything known (the route, "existed by 1937", the
+sheet) and searches for the rest.
+
+**Background.** A bulk job records requests for many sections at once, priority
+`background`, and `cite` works through them.
+
+Either way, `cite` finds a June 1931 journal page saying the line was "completed in May
+1931" and writes, straight away:
+
+| Table | Row |
+| --- | --- |
+| `SOURCE` | that issue of the journal (once; reused by anything else cited from it) |
+| `CITATION` | page 40, with the quoted sentence |
+| `CLAIM` | `status` = `operational`, valid `1931-05/..`, `candidate`, by `cite`, `request_id` = the request |
+| `CLAIM_CITATION` | the claim to page 40, role `states` |
+
+A person accepts it. The section now has two `status` claims, both kept:
+
+| Says | From |
+| --- | --- |
+| operational, existed by 1937 | the sheet |
+| operational from May 1931 | the journal page |
+
+They don't disagree: "running by 1937" and "started May 1931" are both true.
+
+### Reading a fact off the map
+
+A person sees "New Mexico Gas & Oil Co." printed along the line on the 1937 sheet and adds
+it directly: an `owner` claim, valid `../1937` (owned by them as of the sheet date, the same
+map-date rule), `accepted`, by that person, cited to the sheet and where on it the label is.
+No AI and no review step, because a person made it.

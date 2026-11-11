@@ -48,10 +48,13 @@ is small; all of them should go into `model.md` before the first migration.
   `("natural_gas_traces", "<period>/<file>/<layer>/<fid>")`. It makes `backport` re-runnable:
   a second run updates instead of duplicating. ULIDs from the stitched GeoPackage convert
   to UUIDs directly, so the existing ids can be kept.
-- **`CITATION_REQUEST`.** Who asked, which features, which attributes (or all), a status
-  (`queued | running | done | failed`), and the run that answered it. This is the record
-  `review` leaves and `cite` picks up (L-0003, L-0013). It belongs in v0 because it is the
-  one table the loop can't run without, even though nothing reads it until winter.
+- **`CITATION_REQUEST`.** Which section, which attributes (or anything), who asked (a
+  person or a bulk job), priority (`interactive | background`), status
+  (`queued | running | done | failed`), and the run details (start, finish, model, cost).
+  "Ask AI" in `review` creates one and has `cite` process it at once; a bulk job creates
+  many and `cite` works through them. Both write candidates straight to the claim tables,
+  and each candidate claim points back to its request (`CLAIM.request_id`). It belongs in
+  v0 because the loop can't run without it, even though nothing uses it until winter.
 
 ## How the GeoPackage maps onto the model
 
@@ -148,7 +151,8 @@ Small and boring on purpose.
 - **Features.** Create; read by bbox, time and network; read one with all its claims,
   citations, reviews and links.
 - **Reviews.** Accept, correct or reject a claim. Confirm or reject a link.
-- **Citation requests.** Create, list by status, claim one (for `cite`), and complete.
+- **Citation requests.** Create (interactive or background), list by status, take the next
+  one (for `cite`'s background workers), and complete.
 - **Missing.** "Sections with no `diameter` claim", "proposed links not yet reviewed". This
   is what `review` filters on, and what tells a person where the loop is done.
 
@@ -164,7 +168,7 @@ Rough sizes for one developer; a guess, not a commitment.
 | M3 | API | the endpoints above, auth, the model package published | 1-2 weeks |
 | M4 | Backport the natural gas traces | in the `backport` repo; real data in a local `store` | 1 week |
 | M5 | Round trip | `release` v0 export, the comparison test, a hosted database | days |
-| M6 | Loop hooks | citation request pickup contract with `cite`; read endpoints `review` needs | 1 week |
+| M6 | Loop hooks | citation requests with `cite`, interactive and background; read endpoints `review` needs | 1 week |
 
 M4 can start against M1's schema with direct SQL if the API is late; switching it to the API
 is a small change, and it is better to find model problems in week two than week five.
