@@ -43,6 +43,7 @@ erDiagram
     SOURCE |o--o{ SOURCE : "contains"
     AGENT ||--o{ CLAIM : "asserted"
     CLAIM ||--o{ REVIEW : ""
+    REVIEW |o--o| CLAIM : "replaced_by"
     AGENT ||--o{ REVIEW : "reviewed"
     FEATURE ||--o{ FEATURE_LINK : ""
 
@@ -137,6 +138,7 @@ erDiagram
         uuid claim_id FK
         uuid reviewer_id FK
         text verdict "accept | reject | correct"
+        uuid replaced_by_claim_id FK "correct only: the reviewer's new claim"
         text note
     }
     FEATURE_LINK {
