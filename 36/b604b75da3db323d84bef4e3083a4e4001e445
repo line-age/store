@@ -1,0 +1,23 @@
+docs/model.md
+  s_111c4f7ff198f4::t_4ffe20ded8f74a 45-47,108-119
+docs/plan.md
+  s_111c4f7ff198f4::t_1594e24bbb63d5 51-57,154-155,171
+docs/scenarios.md
+  s_111c4f7ff198f4::t_c35a95da8958b6 53-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "36b604b75da3db323d84bef4e3083a4e4001e445",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
