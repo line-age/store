@@ -66,14 +66,29 @@ So the model can be checked against it before any code exists.
 | the tracer code | `AGENT` (person) who asserted the `route` claim |
 | one removal (`sub`) trace | its own `FEATURE` (section): `route` claim cited to the earlier sheet (`map_shows`), and an end of `status` cited to the later sheet (`map_omits`) |
 | a proposed match, removal to section | `FEATURE_LINK` `same_as` or `overlaps`, status `proposed`, with the score, asserted by the stitch script as a pipeline agent |
-| the stitch script's split pieces | not stored. They are a view of a proposed link, not a fact. `release` can rebuild them |
+| the stitch script's split pieces | not stored while the match is proposed; `release` and the QGIS views rebuild them from the link. Confirming an `overlaps` link splits the section for real |
 | `source`, `source_layer`, `source_fid` | external keys |
 
-The last two rows are the interesting call. The stitch script split 48 traced lines into 94
-pieces so QGIS could show part of a line ending. Storing those pieces would record a
-judgement (which part of the line the removal meant) as geometry. Under I-0005 the facts are
-the two traces; the link between them is the judgement, and it is the first thing a person
-reviews in `review`.
+The split pieces are the interesting call. The stitch script split 48 traced lines into 94
+pieces so QGIS could show part of a line ending. Where it cut is wherever its 1 km buffer
+happened to end; no sheet shows a break there. Storing those pieces as sections would
+record a judgement (which part of the line the removal meant) as if it were a trace, and
+undoing it after a rejected match means gluing a line back together.
+
+So the split happens in two steps (agreed 2026-11-11):
+
+1. **Proposed.** `store` keeps the line and the removal exactly as traced, plus one
+   `overlaps` link between them with its score. The views and `release` draw the cut from
+   the link, so QGIS still shows part of the line ending. Rejecting the link leaves nothing
+   to undo.
+2. **Confirmed.** When a person confirms the link in `review`, the cut becomes real: the
+   section is split into two new sections (the research partner's 1a and 1b), joined to the
+   original by `split_into` links, each with its own `route` claim. The ended piece takes
+   the removal's end of `status`; the other carries on. The person can move the cut before
+   confirming, and the confirmation is in the audit trail like any other review.
+
+A `same_as` link (the removal covers the whole line) needs no split; confirming it just
+puts the end on the line.
 
 Two of the research partner's answers change this mapping, and the email asking them is
 out: what a `sub` file means, and which of two same-year sheets was traced. See
@@ -143,7 +158,7 @@ Rough sizes for one developer; a guess, not a commitment.
 
 | | What | Delivers | Size |
 | --- | --- | --- | --- |
-| M0 | Settle the model | the changes above in `model.md`; merge the model draft; decide on split pieces | days |
+| M0 | Settle the model | the changes above in `model.md`; merge the model draft | days |
 | M1 | Schema | migrations, history triggers, agent resolution, Compose with PostGIS, CI, a synthetic fixture | 1 week |
 | M2 | QGIS views | the `qgis` schema and a stored project; the fixture animates in QGIS | days |
 | M3 | API | the endpoints above, auth, the model package published | 1-2 weeks |
@@ -164,6 +179,5 @@ lives, against a path it is given.
 
 1. **Stack:** as above. Agreed 2026-11-11.
 2. **QGIS editing through the views:** not a v0 goal; the API first. Agreed 2026-11-11.
-3. **Split pieces, or only links:** still open. Whether `store` keeps the geometry of a
-   line cut where a removal was matched to part of it, or only the proposed link between
-   the removal and the whole line. See "How the GeoPackage maps onto the model".
+3. **Split pieces:** links only while a match is proposed; the split is made when a person
+   confirms it. See "How the GeoPackage maps onto the model". Agreed 2026-11-11.
