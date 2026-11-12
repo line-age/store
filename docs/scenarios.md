@@ -339,3 +339,28 @@ in principle be moved to match, which would mean storing each trace in the scan'
 coordinates. It isn't worth it: at these map scales the ink itself is far wider than any
 georeferencing error, so the lines are no more accurate after moving them. A badly wrong
 georeference is fixed by correcting the routes it spoiled (case 7) or tracing again.
+
+## Case 8: the line changes hands
+
+A 1945 journal item says "El Paso Natural Gas has acquired the Hobbs line from New Mexico
+Gas & Oil, effective March 1". That one passage states both ends, so `cite` writes two
+claims from it:
+
+| attribute | value | valid | cited to |
+| --- | --- | --- | --- |
+| owner | New Mexico Gas & Oil Co. | as of 1937 | 1937 sheet |
+| owner | New Mexico Gas & Oil Co. | until 1945-03-01 | 1945 journal |
+| owner | El Paso Natural Gas | from 1945-03-01 | 1945 journal |
+
+Write what the source states, including an end it states, and don't assume an end just
+because a new owner appears: `owner` allows several at once (joint ownership), so a new
+name alone could be a half share.
+
+## Not yet worked
+
+Left until real data pushes on them, most likely the research partner's spreadsheets:
+
+- A line relaid with bigger pipe on the same route (a new section; how it links to the old
+  one, and which section the later maps' citations belong to).
+- A line that disappears from one sheet and comes back on the next.
+- A line extended from its end by a later trace.
