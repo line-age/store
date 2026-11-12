@@ -158,3 +158,30 @@ the 1960 sheet doesn't. The tracer draws the vanished line on the 1955 sheet as 
 The two sheets are facts; "this removal is that line" is a judgement, so the system only
 proposes it (I-0004). The 1931 section's own claims don't change. If the match is wrong,
 rejecting the link leaves nothing to undo.
+
+### Review decides the link
+
+In `review`, the "proposed removals" filter lists the pair: both lines over the 1955 and
+1960 sheets, with the score.
+
+**Confirm.** The link goes from `proposed` to `confirmed`, and a `REVIEW` row records who
+confirmed it. Nothing is copied onto the 1931 section: the `decommissioned` claim stays on
+the removal, where the sheets put it, and the confirmed link is what says the two are one
+line. Anything that reads dates follows confirmed `same_as` links.
+
+`release` treats a confirmed `same_as` pair as one row, with the route from the original
+trace and dates from both features' status claims:
+
+| id | existed_from | existed_to | time_start | time_end |
+| --- | --- | --- | --- | --- |
+| 4c1e… | 1931-05 | 1955-06-30/1960 | 1931-05-01 | 1960-12-31 |
+
+**Reject.** The link becomes `rejected`, the 1931 line stays open-ended, and the removal
+stays on the "unmatched removals" list until someone finds the line it belongs to.
+
+**Undecided.** `release` ignores proposed links, as it leaves out candidate claims. The
+QGIS views draw the proposed end, marked as proposed.
+
+Copying a `decommissioned` claim onto the section at confirmation was the alternative. It
+is simpler to read, but it is a duplicate that has to be unwound if the confirmation is
+ever reversed.
