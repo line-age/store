@@ -376,6 +376,20 @@ A link can be cited, for example to an item saying the line "was extended to Ker
 1936". `FEATURE_LINK` holds every kind of link in one table because they all share that
 life cycle; each kind fixes which feature kinds its ends may be (see model.md).
 
+In the release, the map stays on sections. A `lines` layer with the sections glued into one
+geometry would break the time slider, drawing the 1936 extension in 1931. So `sections`
+gains a `line_id` column, taken only from confirmed `part_of` links, and `lines` is a
+table with no geometry:
+
+| id | label |
+| --- | --- |
+| ab12… | Hobbs line |
+
+In QGIS you colour or label sections by line, and the extension still appears in 1936.
+`label` is the display-only field every feature has, filled from the line's accepted `name`
+claim; a renamed line keeps all its names, dated and cited, in `claims`. Until `7b20`'s
+link is confirmed, `7b20` is released with no line.
+
 ## Not yet worked
 
 Left until real data pushes on them, most likely the research partner's spreadsheets:
