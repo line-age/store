@@ -297,3 +297,22 @@ map may be drawn better. The link points from the trace set aside to the one kep
 set-aside route stays in `store` with its citation. `release` shows one line: the dates
 combine by the narrowest-date rule ("by 1937" and "by 1950" give "by 1937"), and the
 citations from both maps are on it.
+
+## Case 6: the machine traces a railroad
+
+`trace` (the automated tracer, not a person) reads a sheet and draws a line that is really a
+railroad, its characteristic mistake. It writes the same rows a person would, except the
+claims are candidates:
+
+| Table | Row |
+| --- | --- |
+| `FEATURE` | new section `e44a…` |
+| `CLAIM` | `route`, `candidate`, by `trace` |
+| `CLAIM` | `operational` valid `../1937`, `candidate`, by `trace` |
+
+A person sees the railroad symbol on the sheet and clicks "reject trace", which rejects
+every candidate claim on the section at once, one `REVIEW` row per claim. Nothing is
+deleted: the section stays, holding only rejected claims. `release` skips it (a section
+with no accepted `route` isn't a line), `review` stops listing it, and it counts as a false
+positive on `trace`'s scorecard and stops `trace` proposing it again. The QGIS views can
+show rejected traces in a layer of their own, off by default.
