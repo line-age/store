@@ -1,0 +1,79 @@
+src/lineage_store/auth.py
+  s_111c4f7ff198f4::t_0737b09eb82b94 1-107
+model/src/lineage_model/shapes.py
+  s_111c4f7ff198f4::t_9682c9d8fb9cfa 1-180
+  s_111c4f7ff198f4::t_01bec6c97b6da3 181-198
+db/migrations/20261112000001_core.sql
+  s_111c4f7ff198f4::t_65a42c1c5fc692 1-418
+tests/test_scenarios.py
+  s_111c4f7ff198f4::t_7d324360352fb0 1-225
+tests/test_rules.py
+  s_111c4f7ff198f4::t_116854dbded03c 1-150
+db/migrations/20261112000002_qgis_views.sql
+  s_111c4f7ff198f4::t_120e5d634e1128 1-222
+  s_111c4f7ff198f4::t_6634e7ae7fe821 223-224
+src/lineage_store/app.py
+  s_111c4f7ff198f4::t_7e057ca76ff6fb 1-143
+  s_111c4f7ff198f4::t_ffd7bfcc27da15 144-150
+src/lineage_store/reads.py
+  s_111c4f7ff198f4::t_893558d64d1111 1-113
+src/lineage_store/writes.py
+  s_111c4f7ff198f4::t_9f9e3d424e86a8 1-345
+  s_111c4f7ff198f4::t_20bb67d8810242 346-354
+.env.example
+  s_111c4f7ff198f4::t_dd640c8937d95e 1
+.github/workflows/ci.yml
+  s_111c4f7ff198f4::t_457aeccad0297a 1-30
+.gitignore
+  s_111c4f7ff198f4::t_60371059902c4e 1-6
+Dockerfile
+  s_111c4f7ff198f4::t_5bba26c5a48389 1-10
+README.md
+  s_111c4f7ff198f4::t_c999405b698aed 7,13-85
+compose.yaml
+  s_111c4f7ff198f4::t_29cbed7056d97e 1-37
+docs/model.md
+  s_111c4f7ff198f4::t_abbaf5eaebae82 1,3-4,90,132,140-141,154-155,157,183-194
+docs/plan.md
+  s_111c4f7ff198f4::t_a921c913e23351 36-37
+model/README.md
+  s_111c4f7ff198f4::t_f46c43e409a52d 1-5
+model/pyproject.toml
+  s_111c4f7ff198f4::t_8cefb380e8d6db 1-10
+model/src/lineage_model/__init__.py
+  s_111c4f7ff198f4::t_94a6a9fb14e8d3 1-61
+model/src/lineage_model/attributes.py
+  s_111c4f7ff198f4::t_df5f43758a6551 1-37
+model/src/lineage_model/edtf.py
+  s_111c4f7ff198f4::t_3eeb5106f88a85 1-66
+pyproject.toml
+  s_111c4f7ff198f4::t_44c8141e2a72fd 1-34
+src/lineage_store/__init__.py
+  s_111c4f7ff198f4::t_d049cf124fa120 1
+src/lineage_store/cli.py
+  s_111c4f7ff198f4::t_592f2f06bbdfa8 1-87
+src/lineage_store/config.py
+  s_111c4f7ff198f4::t_7835e2b30352da 1-18
+src/lineage_store/db.py
+  s_111c4f7ff198f4::t_77d25f02d41b29 1-32
+tests/conftest.py
+  s_111c4f7ff198f4::t_de9467be8b9665 1-116
+uv.lock
+  s_111c4f7ff198f4::t_dbdd8902ebb50b 1-993
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "abf3ef47bf3dec5bbb799cfc08cba072c95b0bd6",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
