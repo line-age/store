@@ -76,7 +76,8 @@ dec_pick AS (  -- the claim that sets the narrowest end
 )
 SELECT s.feature_id AS section_id,
        op_pick.valid_edtf                                                           AS existed_from,
-       CASE WHEN op.lo > op.hi THEN op.hi
+       -- in a conflict, widen to the earliest any claim allows
+       CASE WHEN op.lo > op.hi THEN least(op.hi, op.seen)
             ELSE coalesce(op.lo, least(op.hi, op.seen)) END                         AS time_start,
        CASE WHEN dec.lo > dec.hi
             THEN coalesce(dec.widest_lo::text, '..') || '/' || coalesce(dec.widest_hi::text, '..')

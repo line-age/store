@@ -2,7 +2,7 @@
 name = "lineage-store"
 version = "0.1.0"
 description = "Lineage store: the API in front of the PostGIS database"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
     "lineage-model",
     "fastapi>=0.115",
