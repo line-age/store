@@ -1,5 +1,6 @@
-# Local development: PostGIS, migrations, and the API. Generic on purpose; a real
-# deployment supplies its own values (controlplane L-0006, L-0009).
+# Local development: PostGIS, migrations, and the API, on Lineage's fixed local ports
+# (controlplane ports.md, L-0014). Generic on purpose; a real deployment supplies its own
+# values (controlplane L-0006, L-0009).
 services:
   db:
     image: postgis/postgis:16-3.4
@@ -7,7 +8,7 @@ services:
       POSTGRES_USER: lineage
       POSTGRES_PASSWORD: lineage
       POSTGRES_DB: lineage
-    ports: ["54329:5432"]
+    ports: ["${LINEAGE_DB_PORT:-47119}:5432"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lineage"]
       interval: 2s
@@ -29,7 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://lineage:lineage@db:5432/lineage
       LINEAGE_GITHUB_TEAMS: ${LINEAGE_GITHUB_TEAMS:-}
-    ports: ["${LINEAGE_API_PORT:-8080}:8000"]
+    ports: ["${LINEAGE_API_PORT:-47110}:8000"]
     depends_on:
       migrate: {condition: service_completed_successfully}
 

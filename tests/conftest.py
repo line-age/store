@@ -19,7 +19,7 @@ from lineage_store.auth import Authenticator, new_token
 from lineage_store.config import Settings
 from lineage_store.db import STORE_AGENT
 
-ADMIN_URL = os.environ.get("LINEAGE_TEST_ADMIN_URL", "postgresql://lineage:lineage@localhost:54329/lineage")
+ADMIN_URL = os.environ.get("LINEAGE_TEST_ADMIN_URL", "postgresql://lineage:lineage@localhost:47119/lineage")
 HERE = os.path.dirname(__file__)
 MIGRATIONS = os.path.join(HERE, "..", "db", "migrations")
 

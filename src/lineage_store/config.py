@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class Settings:
     database_url: str = field(default_factory=lambda: os.environ.get(
-        "DATABASE_URL", "postgresql://lineage:lineage@localhost:54329/lineage"))
+        "DATABASE_URL", "postgresql://lineage:lineage@localhost:47119/lineage"))
     # People log in with GitHub and must be in one of these teams, "org/team-slug"
     # (controlplane L-0012).
     github_teams: tuple[str, ...] = field(default_factory=lambda: tuple(

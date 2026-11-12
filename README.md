@@ -31,10 +31,11 @@ Everything runs as a container; the same images are what a Kubernetes deployment
 (the `deploy` repo packages them).
 
 ```sh
-docker compose up -d --build       # PostGIS on :54329, migrations, the API on :8080
+docker compose up -d --build       # PostGIS on :47119, migrations, the API on :47110
 ```
 
-`LINEAGE_API_PORT` changes the API's host port. Admin commands run inside the API
+The host ports are Lineage's fixed local ports ([controlplane ports.md](https://github.com/line-age/controlplane/blob/main/ports.md));
+`LINEAGE_API_PORT` and `LINEAGE_DB_PORT` move them. Admin commands run inside the API
 container, which already has the database URL:
 
 ```sh
