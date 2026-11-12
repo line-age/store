@@ -29,7 +29,7 @@ services:
     environment:
       DATABASE_URL: postgresql://lineage:lineage@db:5432/lineage
       LINEAGE_GITHUB_TEAMS: ${LINEAGE_GITHUB_TEAMS:-}
-    ports: ["8000:8000"]
+    ports: ["${LINEAGE_API_PORT:-8080}:8000"]
     depends_on:
       migrate: {condition: service_completed_successfully}
 

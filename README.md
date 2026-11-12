@@ -27,30 +27,36 @@ L-0002).
 
 ## Running it
 
-```sh
-docker compose up --build          # PostGIS on :54329, migrations, the API on :8000
-```
-
-Without Compose: a PostGIS 16 database, then
+Everything runs as a container; the same images are what a Kubernetes deployment runs
+(the `deploy` repo packages them).
 
 ```sh
-export DATABASE_URL=postgresql://lineage:lineage@localhost:54329/lineage
-dbmate --url "$DATABASE_URL?sslmode=disable" --migrations-dir db/migrations --no-dump-schema up
-uv run lineage-store serve
+docker compose up -d --build       # PostGIS on :54329, migrations, the API on :8080
 ```
+
+`LINEAGE_API_PORT` changes the API's host port. Admin commands run inside the API
+container, which already has the database URL:
+
+```sh
+docker compose exec api lineage-store token create backport --pipeline backport@<sha> --assert-for-others
+```
+
+The image is `Dockerfile` (the API, `lineage-store serve`); migrations run from the stock
+dbmate image against `db/migrations`. For working on the code itself, `uv run lineage-store
+serve` against the Compose database also works.
 
 ## Who can write
 
 Every write names an agent, or the database refuses it.
 
-- **Pipelines** use a token: `uv run lineage-store token create backport --pipeline backport@<sha>
-  --assert-for-others`. The token is printed once. `--assert-for-others` lets an importer
+- **Pipelines** use a token: `docker compose exec api lineage-store token create backport
+  --pipeline backport@<sha> --assert-for-others`. The token is printed once. `--assert-for-others` lets an importer
   write claims asserted by the people whose work it carries.
 - **People** send a GitHub token. They must be in one of `LINEAGE_GITHUB_TEAMS`
   (`org/team-slug`, comma-separated); their agent is created on first sight, matched by
   GitHub login.
 - **QGIS against PostGIS directly**: give each person a database role, and
-  `uv run lineage-store role map <role> --github <login>`.
+  `docker compose exec api lineage-store role map <role> --github <login>`.
 
 ## The API
 
