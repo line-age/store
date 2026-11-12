@@ -331,3 +331,11 @@ source, right line, wrong value.
 One `REVIEW` row: `correct` on the first, `replaced_by_claim_id` = the second, which is
 cited to the same place on the 1937 sheet. Dates, owner and links hang off the section, not
 the route, so nothing else changes. The tracer's original stays in the rejected claim.
+
+## Not modelled: re-georeferencing a sheet
+
+Considered and dropped. If a sheet's georeferencing improves, the lines traced on it could
+in principle be moved to match, which would mean storing each trace in the scan's pixel
+coordinates. It isn't worth it: at these map scales the ink itself is far wider than any
+georeferencing error, so the lines are no more accurate after moving them. A badly wrong
+georeference is fixed by correcting the routes it spoiled (case 7) or tracing again.
