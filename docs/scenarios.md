@@ -356,6 +356,26 @@ Write what the source states, including an end it states, and don't assume an en
 because a new owner appears: `owner` allows several at once (joint ownership), so a new
 name alone could be a half share.
 
+## Case 9: sections grouped into a line
+
+Researchers think in pipelines ("the Hobbs line"); traces arrive as sections. Say the Hobbs
+line is `4c1e` (Hobbs to Jal, 1931) and `7b20` (Jal to Kermit, an extension, 1936).
+
+The line is its own `FEATURE`, kind `line` (`ab12…`), and its facts are claims like any
+other: `name` = "Hobbs line", cited to the 1945 journal item that calls it that.
+
+No trace says which line a section belongs to, so membership is a judgement (I-0005) and a
+link, with the same life cycle as cases 2 to 5:
+
+| `FEATURE_LINK` | from | to | status | by |
+| --- | --- | --- | --- | --- |
+| `part_of` | `4c1e` | `ab12` | confirmed | a reviewer |
+| `part_of` | `7b20` | `ab12` | proposed | the matcher, score 0.85 |
+
+A link can be cited, for example to an item saying the line "was extended to Kermit in
+1936". `FEATURE_LINK` holds every kind of link in one table because they all share that
+life cycle; each kind fixes which feature kinds its ends may be (see model.md).
+
 ## Not yet worked
 
 Left until real data pushes on them, most likely the research partner's spreadsheets:
