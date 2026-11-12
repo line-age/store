@@ -31,7 +31,7 @@ Everything runs as a container; the same images are what a Kubernetes deployment
 (the `deploy` repo packages them).
 
 ```sh
-docker compose up -d --build       # PostGIS on :47119, migrations, the API on :47110
+docker compose up -d --build       # PostGIS on :47119, migrations, the QGIS project, the API on :47110
 ```
 
 The host ports are Lineage's fixed local ports ([controlplane ports.md](https://github.com/line-age/controlplane/blob/main/ports.md));
@@ -77,9 +77,29 @@ OpenAPI docs are at `/docs` while it runs.
 
 ## QGIS
 
-Connect to the database and add the views in the `qgis` schema: `sections` (with
-`time_start` and `time_end` for the Temporal Controller), `removals`, `proposed_links`,
-`lines` and `rejected_traces`. Proposed ends are drawn and marked `end_status = proposed`.
+No setup: in QGIS, **Project → Open From → PostgreSQL**, pick the connection, schema
+`qgis`, project **Lineage**. It opens with the sections on a time slider (1929 to 1998, a
+year a step), and the removals and proposed links as layers you can switch on. Proposed
+ends are dashed; sections whose sources disagree on dates are purple. Allow the project's
+macro when QGIS asks: it puts the Temporal Controller in animated mode, which QGIS doesn't
+save in projects. Without it, click the animated button in the Temporal Controller.
+
+The connection is the database Compose runs: host `localhost`, port `47119`, database
+`lineage`, user and password `lineage`.
+
+Adding `qgis.sections` by hand also picks up the default style (symbology, and the time
+fields), though QGIS leaves the Temporal tab's *Dynamic Temporal Control* box for you to
+tick.
+
+`docker compose up` installs the project and the style. Elsewhere, run
+`lineage-store qgis install --host <db host as QGIS users reach it> --port <port>`; it
+leaves the user and password out unless given, so each person's own credentials apply.
+The project is made in QGIS 4.2 and kept in `src/lineage_store/qgis/`; to change it, edit
+it in QGIS, save it, and template the connection back to `@CONNECTION@`.
+
+The views, if you want them directly: `qgis.sections` (time fields `time_start` and
+`time_end`, key `row_id`), `qgis.removals`, `qgis.proposed_links`, `qgis.lines`,
+`qgis.rejected_traces`.
 
 ## Tests
 

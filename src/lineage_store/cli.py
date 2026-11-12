@@ -4,6 +4,7 @@
     lineage-store token create backport --pipeline backport@742973e --assert-for-others
     lineage-store token revoke <token-id>
     lineage-store role map jdoe --github jdoe        # a QGIS database role -> that person's agent
+    lineage-store qgis install --host db.example --port 5432   # the ready-made QGIS project
 """
 
 from __future__ import annotations
@@ -39,6 +40,14 @@ def main(argv: list[str] | None = None) -> None:
     m.add_argument("--github", required=True, help="the person's GitHub login")
     m.add_argument("--name", help="their name, if they have no agent yet")
 
+    q = sub.add_parser("qgis", help="QGIS project and style in the database").add_subparsers(dest="qcmd", required=True)
+    qi = q.add_parser("install", help="install or replace the Lineage project and the default sections style")
+    qi.add_argument("--host", required=True, help="the database host as QGIS users reach it")
+    qi.add_argument("--port", type=int, default=5432)
+    qi.add_argument("--dbname", default="lineage")
+    qi.add_argument("--user", help="put a user in the project (local development only)")
+    qi.add_argument("--password", help="put a password in the project (local development only)")
+
     args = ap.parse_args(argv)
     if args.cmd == "serve":
         import uvicorn
@@ -71,6 +80,11 @@ def main(argv: list[str] | None = None) -> None:
                 n = conn.execute("UPDATE store.agent_token SET revoked_at = now() WHERE id = %s AND revoked_at IS NULL",
                                  (args.token_id,)).rowcount
                 print("revoked" if n else "no live token with that id")
+            elif args.cmd == "qgis":
+                from . import qgis
+                cs = qgis.connection_string(args.host, args.port, args.dbname, args.user, args.password)
+                qgis.install(conn, cs, args.dbname)
+                print(f"installed QGIS project {qgis.PROJECT_NAME!r} in qgis.qgis_projects for {args.host}:{args.port}")
             elif args.cmd == "role":
                 row = conn.execute("SELECT id FROM store.agent WHERE github_login = %s", (args.github,)).fetchone()
                 agent_id = row["id"] if row else conn.execute(
