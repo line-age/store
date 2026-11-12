@@ -1,0 +1,23 @@
+db/migrations/20261112000002_qgis_views.sql
+  s_111c4f7ff198f4::t_061848dcfbaa19 66-75,78,83,88-91,177-194,199-200,202-204
+pyproject.toml
+  s_111c4f7ff198f4::t_fd2017ac4bcbc7 35-38
+src/lineage_store/reads.py
+  s_111c4f7ff198f4::t_8afe4bb9beb113 39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "8530ee229a03e0d84594d65b7cc2acb5cce9df7a",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
