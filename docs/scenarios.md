@@ -253,3 +253,26 @@ type already says "part of it" instead of "all of it".
 The 1931 section is still one 100 km feature. The QGIS views draw the eastern 40 km
 ending, marked as proposed; `release` ignores the proposed link, so the whole line stays
 open-ended there.
+
+### Review confirms the cut
+
+In `review` the person sees the 100 km line with the proposed cut where the removal starts
+(about km 60), drags it to where the 1960 sheet actually stops drawing the line if need be,
+and confirms:
+
+| Table | Row |
+| --- | --- |
+| `FEATURE` | west piece `7a2f…`, 60 km, and east piece `9d03…`, 40 km |
+| `CLAIM` | a `route` for each piece, by the reviewer, cited to the same place on the 1937 sheet as the original route |
+| `FEATURE_LINK` | `split_into`, `4c1e` to each piece |
+| `FEATURE_LINK` | the `overlaps` link becomes `confirmed`, and a new confirmed `same_as` joins the removal to `9d03` |
+| `REVIEW` | confirm, with the cut, by that person |
+
+`4c1e`'s own claims (operational from May 1931, the owner) stay on it. They describe the
+whole line, so both pieces inherit them by following `split_into`, the same "follow the
+links" rule as case 2. `4c1e` is no longer released; its pieces are:
+
+| id | existed_from | existed_to | time_end |
+| --- | --- | --- | --- |
+| 7a2f… | 1931-05 | | |
+| 9d03… | 1931-05 | 1955-06-30/1960 | 1960-12-31 |
