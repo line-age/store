@@ -316,3 +316,18 @@ deleted: the section stays, holding only rejected claims. `release` skips it (a 
 with no accepted `route` isn't a line), `review` stops listing it, and it counts as a false
 positive on `trace`'s scorecard and stops `trace` proposing it again. The QGIS views can
 show rejected traces in a layer of their own, off by default.
+
+## Case 7: the route is drawn wrong
+
+The tracer cut a corner near Hobbs that the 1937 sheet draws as a dogleg, and a reviewer
+redraws that stretch. It is a `correct` verdict, as in the March-to-May example: right
+source, right line, wrong value.
+
+| Claim | Value | Status | By |
+| --- | --- | --- | --- |
+| first route | the hurried line | rejected | the tracer |
+| second route | the redrawn line | accepted | the reviewer |
+
+One `REVIEW` row: `correct` on the first, `replaced_by_claim_id` = the second, which is
+cited to the same place on the 1937 sheet. Dates, owner and links hang off the section, not
+the route, so nothing else changes. The tracer's original stays in the rejected claim.
