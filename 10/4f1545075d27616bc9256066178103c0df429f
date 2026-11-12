@@ -1,0 +1,37 @@
+README.md
+  s_111c4f7ff198f4::t_363522c5aa32d8 34,80-102
+compose.yaml
+  s_111c4f7ff198f4::t_863a38e9c01cfb 28-39
+db/migrations/20261112000003_fast_qgis_views.sql
+  s_111c4f7ff198f4::t_55e52b7dd942e9 1-184
+db/migrations/20261112000004_qgis_project_tables.sql
+  s_111c4f7ff198f4::t_1a94a749a3d513 1-38
+docs/plan.md
+  s_111c4f7ff198f4::t_41f022338f6dd1 142-144
+src/lineage_store/cli.py
+  s_111c4f7ff198f4::t_e4fb4aa74c6e9b 7,43-50,83-87
+src/lineage_store/qgis/__init__.py
+  s_111c4f7ff198f4::t_20e5a4979bc138 1-55
+src/lineage_store/qgis/lineage.qgs
+  s_111c4f7ff198f4::t_2f01b5d5fbe1ad 1-1592
+src/lineage_store/qgis/sections.qml
+  s_111c4f7ff198f4::t_d115b22f9886da 1-500
+tests/test_qgis.py
+  s_111c4f7ff198f4::t_66e7382fb316be 1-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "104f1545075d27616bc9256066178103c0df429f",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
