@@ -12,8 +12,9 @@ The natural gas traces round-trip:
    the API.
 2. QGIS opens the PostGIS views directly, with the Temporal Controller working, and shows
    the same lines appearing and disappearing in the same years as the GeoPackage.
-3. `release` exports a GeoPackage from `store` that matches the input: same feature count,
-   same geometry, same dates.
+3. `release` exports a GeoPackage from `store` that matches the input as traced: same
+   lines, same geometry, same start dates. The proposed ends are left out until someone
+   confirms them, because a release ignores anything still proposed (scenarios, case 2).
 4. Every row written in (1) has an audit entry naming who wrote it.
 
 That is the controlplane's "QGIS round trip against the hosted database", made concrete
