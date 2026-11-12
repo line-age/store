@@ -390,6 +390,29 @@ In QGIS you colour or label sections by line, and the extension still appears in
 claim; a renamed line keeps all its names, dated and cited, in `claims`. Until `7b20`'s
 link is confirmed, `7b20` is released with no line.
 
+## Case 10: a parallel line
+
+The 1937 sheet shows one line from Hobbs to Jal; the 1955 sheet shows two, a few hundred
+metres apart. The tracer draws the new one as an addition, a new section `c3d9…`.
+
+To a matcher it looks like case 5, the same pipe traced twice, and confirming that would
+fuse two pipes. So:
+
+- **The matcher knows the difference.** Two lines drawn on the same sheet can't be the same
+  pipe, so it proposes `parallel_to`, never `same_as`:
+
+  | `FEATURE_LINK` | from | to | status | score |
+  | --- | --- | --- | --- | --- |
+  | `parallel_to` | `c3d9` | `4c1e` | proposed | 0.9 |
+
+- **`parallel_to` is a link, not an attribute claim**, because it is the same kind of
+  judgement as `same_as`. In `review` the person confirms it (two pipes, each with its own
+  dates, diameter and owner), rejects it and proposes `same_as` (one pipe), or rejects it
+  (unrelated).
+
+In the release, `c3d9` is its own section; the link shows in the click-through with its
+claims.
+
 ## Not yet worked
 
 Left until real data pushes on them, most likely the research partner's spreadsheets:

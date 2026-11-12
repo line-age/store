@@ -158,7 +158,7 @@ erDiagram
         uuid id PK
         uuid from_feature_id FK
         uuid to_feature_id FK
-        text relation "same_as | overlaps | split_into | part_of"
+        text relation "same_as | overlaps | split_into | part_of | parallel_to"
         text status "proposed | confirmed | rejected"
         numeric score "the proposer's confidence, nullable"
         uuid asserted_by FK "AGENT"
@@ -174,6 +174,7 @@ erDiagram
 | `overlaps` | section | section | a removal covers part of this section |
 | `split_into` | section | section | this section was cut into these pieces |
 | `part_of` | section | line | this section belongs to this line |
+| `parallel_to` | section | section | a second pipe beside this one, not the same pipe |
 
 Not drawn: trigger-based history tables on every table, so writes straight from QGIS are
 audited too.
@@ -194,11 +195,10 @@ audited too.
 | `gauge`, `lanes` | section (road, rail) | quantity | one |
 | `station_kind` | station | enum: pump, compressor, substation, terminal, intake, delivery | one |
 | `serves` | station | feature (section) | many |
-| `parallel_to` | section | feature (section) | many |
 | `flow_direction` | edge | enum: forward, reverse, both (relative to from/to) | one |
 
 Twinning and looping: a twin is its own section with its own build date, owner and
-diameter, linked to the original by `parallel_to`. `diameter` stays single-valued.
+diameter, linked to the original by a `parallel_to` link (scenarios, case 10). `diameter` stays single-valued.
 
 ## Worked example
 
