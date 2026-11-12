@@ -42,8 +42,9 @@ is small; all of them should go into `model.md` before the first migration.
   evidence that it ended, and weaker evidence than a passage saying so. It needs its own
   role so nobody mistakes it for `states`.
 - **`FEATURE_LINK` gains `overlaps`, `score` and `asserted_by`.** A removal trace that
-  covers 40% of a section is not `same_as`. The score is the match quality the proposer
-  computed, and the proposer is an agent like any other.
+  covers 40% of a section is not `same_as`. The score is the proposer's confidence that
+  the match is right (not how much of the section it covers, which is computed from the
+  geometry), and the proposer is an agent like any other.
 - **An external key table.** `(system, key) -> feature or claim`, for example
   `("natural_gas_traces", "<period>/<file>/<layer>/<fid>")`. It makes `backport` re-runnable:
   a second run updates instead of duplicating. ULIDs from the stitched GeoPackage convert
@@ -69,7 +70,7 @@ So the model can be checked against it before any code exists.
 | the tracer code | `AGENT` (person) who asserted the `route` claim |
 | one removal (`sub`) trace | its own `FEATURE` (section): `route` claim cited to the earlier sheet (`map_shows`), and an end of `status` cited to the later sheet (`map_omits`) |
 | a proposed match, removal to section | `FEATURE_LINK` `same_as` or `overlaps`, status `proposed`, with the score, asserted by the stitch script as a pipeline agent |
-| the stitch script's split pieces | not stored while the match is proposed; `release` and the QGIS views rebuild them from the link. Confirming an `overlaps` link splits the section for real |
+| the stitch script's split pieces | not stored while the match is proposed; the QGIS views draw them from the link, and `release` ignores proposed links. Confirming an `overlaps` link splits the section for real |
 | `source`, `source_layer`, `source_fid` | external keys |
 
 The split pieces are the interesting call. The stitch script split 48 traced lines into 94
@@ -81,9 +82,10 @@ undoing it after a rejected match means gluing a line back together.
 So the split happens in two steps (agreed 2026-11-11):
 
 1. **Proposed.** `store` keeps the line and the removal exactly as traced, plus one
-   `overlaps` link between them with its score. The views and `release` draw the cut from
-   the link, so QGIS still shows part of the line ending. Rejecting the link leaves nothing
-   to undo.
+   `overlaps` link between them with its score. The QGIS views draw the cut from the link,
+   marked as proposed, so QGIS still shows part of the line ending; `release` ignores
+   proposed links, as it leaves out candidate claims. Rejecting the link leaves nothing to
+   undo.
 2. **Confirmed.** When a person confirms the link in `review`, the cut becomes real: the
    section is split into two new sections (the research partner's 1a and 1b), joined to the
    original by `split_into` links, each with its own `route` claim. The ended piece takes

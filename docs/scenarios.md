@@ -230,3 +230,26 @@ and "abandoned" in a journal or filing can be the paperwork years later.
 
 Ranking evidence (`states` beats `map_omits`) was the alternative. It hides the
 disagreement, and a line missing from a map is right more often than a rule would credit.
+
+## Case 4: only part of the line is removed
+
+The 1931 line runs 100 km. The 1960 sheet still shows the western 60 km but not the
+eastern 40 km, and the tracer draws a removal over just that part.
+
+### Tracing
+
+As case 2, except for the link:
+
+| Table | Row |
+| --- | --- |
+| `FEATURE` | the removal, 40 km |
+| `CLAIM` | its `route` (1955 sheet) and `decommissioned` (1960 sheet), as in case 2 |
+| `FEATURE_LINK` | `overlaps`, removal to the 1931 section, `proposed`, score 0.98 |
+
+The score is the matcher's confidence: the whole removal lies along the line. How much of
+the line it covers (40%) is not stored; it is computed from the two routes, and the link
+type already says "part of it" instead of "all of it".
+
+The 1931 section is still one 100 km feature. The QGIS views draw the eastern 40 km
+ending, marked as proposed; `release` ignores the proposed link, so the whole line stays
+open-ended there.
