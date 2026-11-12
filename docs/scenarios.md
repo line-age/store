@@ -113,8 +113,8 @@ citation hangs.
 | --- | --- | --- | --- | --- | --- |
 | 4c1e… | 1931-05 | | 1931-05-01 | | |
 
-The dates come from the accepted `status` claims: the earliest start wins, so May 1931
-beats "by 1937". `time_start` and `time_end` are the same dates collapsed for the QGIS
+The dates come from the accepted `status` claims: the narrowest date that every one of
+them allows, so "by 1937" and "May 1931" give May 1931. `time_start` and `time_end` are the same dates collapsed for the QGIS
 Temporal Controller (Legend 0011). `diameter` is empty because nobody has found it.
 
 `claims`
@@ -185,3 +185,21 @@ QGIS views draw the proposed end, marked as proposed.
 Copying a `decommissioned` claim onto the section at confirmation was the alternative. It
 is simpler to read, but it is a duplicate that has to be unwound if the confirmation is
 ever reversed.
+
+### A source pins down the year
+
+Someone clicks "Ask AI" on the 1931 line, and `cite` finds a 1958 journal item: "the Hobbs
+line was abandoned in October 1958". It writes a candidate claim on the 1931 section, and a
+person accepts it. Both `decommissioned` claims are kept:
+
+| On | Says | Cited to |
+| --- | --- | --- |
+| the removal | started between 1955-06-30 and 1960 | 1960 sheet, `map_omits` |
+| the 1931 section | from 1958-10 | 1958 journal, `states` |
+
+They don't disagree; October 1958 is inside 1955 to 1960. The release rule for dates is the
+narrowest date that every accepted claim allows:
+
+| id | existed_from | existed_to | time_start | time_end |
+| --- | --- | --- | --- | --- |
+| 4c1e… | 1931-05 | 1958-10 | 1931-05-01 | 1958-10-31 |
