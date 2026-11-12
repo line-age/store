@@ -137,3 +137,24 @@ In QGIS the line appears in 1931 and stays, and you can colour or filter by diam
 dates straight off the layer. Clicking it shows its claims, and each claim's citation. You
 can't colour the map by owner; if that turns out to matter, it is a release format (one row
 per section per owner period, or per year), and the model doesn't change.
+
+## Case 2: the same line, shut down in 1958
+
+Case 1's line, except it was abandoned in 1958. Nobody has a document saying so yet.
+
+### Tracing the shutdown
+
+All there is at first is two sheets: the "as of June 30, 1955" sheet shows the line, and
+the 1960 sheet doesn't. The tracer draws the vanished line on the 1955 sheet as a removal
+(the research partner's `sub` files). One API call writes:
+
+| Table | Row |
+| --- | --- |
+| `FEATURE` | a new section, the removal, separate from the 1931 line |
+| `CLAIM` | `route` = the line as drawn, valid `../1955-06-30`, cited to the 1955 sheet (`map_shows`) |
+| `CLAIM` | `status` = `decommissioned`, starting between 1955-06-30 and 1960, cited to the 1960 sheet (`map_omits`) |
+| `FEATURE_LINK` | `same_as`, removal to the 1931 section, `proposed`, with its score, asserted by the matching script |
+
+The two sheets are facts; "this removal is that line" is a judgement, so the system only
+proposes it (I-0004). The 1931 section's own claims don't change. If the match is wrong,
+rejecting the link leaves nothing to undo.
