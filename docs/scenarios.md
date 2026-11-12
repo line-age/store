@@ -276,3 +276,24 @@ links" rule as case 2. `4c1e` is no longer released; its pieces are:
 | --- | --- | --- | --- |
 | 7a2f… | 1931-05 | | |
 | 9d03… | 1931-05 | 1955-06-30/1960 | 1960-12-31 |
+
+## Case 5: the same pipeline traced twice
+
+Later, someone traces a 1950 state oil and gas map from a different series, and it shows the
+Hobbs line too. Nothing in the trace says it is a line already in `store`, so tracing
+writes a new section:
+
+| Table | Row |
+| --- | --- |
+| `FEATURE` | new section `b81c…` |
+| `CLAIM` | `route` from the 1950 map, and `operational` valid `../1950`, both cited to it (`map_shows`) |
+| `FEATURE_LINK` | `same_as`, `b81c` to `4c1e`, `proposed`, score 0.91 |
+
+Until someone decides, it is a duplicate. That is deliberate (I-0004): a duplicate is
+visible, while two different pipelines wrongly fused into one never get noticed.
+
+When a person confirms the link, they also pick which route is released, since the later
+map may be drawn better. The link points from the trace set aside to the one kept; the
+set-aside route stays in `store` with its citation. `release` shows one line: the dates
+combine by the narrowest-date rule ("by 1937" and "by 1950" give "by 1937"), and the
+citations from both maps are on it.
