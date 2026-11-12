@@ -203,3 +203,30 @@ narrowest date that every accepted claim allows:
 | id | existed_from | existed_to | time_start | time_end |
 | --- | --- | --- | --- | --- |
 | 4c1e… | 1931-05 | 1958-10 | 1931-05-01 | 1958-10-31 |
+
+## Case 3: two sources disagree
+
+Case 2's line, but the item `cite` finds says "abandoned in 1962". The 1960 sheet already
+leaves the line off, so no single date fits both:
+
+| On | Says | Cited to |
+| --- | --- | --- |
+| the removal | decommissioned, starting between 1955-06-30 and 1960 | 1960 sheet, `map_omits` |
+| the 1931 section | decommissioned from 1962 | 1962 journal, `states` |
+
+A person can still accept the 1962 claim: the journal does say it, and that is all
+accepting means. `store` doesn't pick a winner (I-0005).
+
+When the accepted claims can't all be true, `release` widens the date to cover them all and
+flags the row:
+
+| id | existed_to | time_end | date_conflict |
+| --- | --- | --- | --- |
+| 4c1e… | 1955-06-30/1962 | 1962-12-31 | true |
+
+`review` has a "conflicting dates" filter, so someone can go looking for a third source.
+Often both are right about different events: a map drops a line when it stops carrying gas,
+and "abandoned" in a journal or filing can be the paperwork years later.
+
+Ranking evidence (`states` beats `map_omits`) was the alternative. It hides the
+disagreement, and a line missing from a map is right more often than a rule would credit.
