@@ -88,3 +88,52 @@ A person sees "New Mexico Gas & Oil Co." printed along the line on the 1937 shee
 it directly: an `owner` claim, valid `../1937` (owned by them as of the sheet date, the same
 map-date rule), `accepted`, by that person, cited to the sheet and where on it the label is.
 No AI and no review step, because a person made it.
+
+### The release
+
+`release` writes three tables, joined by GeoPackage related tables so QGIS shows them
+together when you click a line. Only `accepted` claims go in by default (whether a research
+build carries candidates is still open).
+
+Which table an attribute goes in depends on whether it can change during one section's
+life. A section is built and put in use at one time (L-0011), so:
+
+- **Fixed for the section's life** (route, diameter, build date): a column on `sections`.
+  Pipe relaid at a new diameter is a new section.
+- **Status** is the section's lifespan, so it is the date columns, not a column of its own.
+- **Can change while the pipe stays put** (owner, operator): rows in `claims` only. A single
+  column would be wrong for part of the line's life.
+
+Every value, column or not, also has its row in `claims`, because that is where its
+citation hangs.
+
+`sections`
+
+| id | existed_from | existed_to | time_start | time_end | diameter |
+| --- | --- | --- | --- | --- | --- |
+| 4c1e… | 1931-05 | | 1931-05-01 | | |
+
+The dates come from the accepted `status` claims: the earliest start wins, so May 1931
+beats "by 1937". `time_start` and `time_end` are the same dates collapsed for the QGIS
+Temporal Controller (Legend 0011). `diameter` is empty because nobody has found it.
+
+`claims`
+
+| section | attribute | value | valid | citation |
+| --- | --- | --- | --- | --- |
+| 4c1e… | route | the traced line | ../1937 | 1937 sheet |
+| 4c1e… | status | operational | ../1937 | 1937 sheet |
+| 4c1e… | status | operational | 1931-05/.. | journal, p. 40 |
+| 4c1e… | owner | New Mexico Gas & Oil Co. | ../1937 | 1937 sheet |
+
+`citations`
+
+| id | source | where | quote |
+| --- | --- | --- | --- |
+| … | the 1937 sheet | the line near Hobbs; the owner label | |
+| … | the journal, June 1931 | p. 40 | "completed in May 1931" |
+
+In QGIS the line appears in 1931 and stays, and you can colour or filter by diameter and
+dates straight off the layer. Clicking it shows its claims, and each claim's citation. You
+can't colour the map by owner; if that turns out to matter, it is a release format (one row
+per section per owner period, or per year), and the model doesn't change.
