@@ -1,6 +1,7 @@
-# The store model (draft)
+# The store model
 
-Working draft. Iterate here until it is stable, then write the migrations.
+The first migration (`db/migrations/20261112000001_core.sql`) implements this. Change it
+here first, then in a new migration.
 
 ## Principles
 
@@ -86,6 +87,7 @@ erDiagram
         text cardinality "one | many, at a single instant"
         text_arr feature_kinds
         text_arr networks
+        text_arr enum_values "enum attributes"
     }
     CLAIM {
         uuid id PK
@@ -127,7 +129,7 @@ erDiagram
     CLAIM_CITATION {
         uuid claim_id FK
         uuid citation_id FK
-        text role "states | map_shows | confirms"
+        text role "states | map_shows | map_omits | confirms"
         numeric confidence
     }
     SOURCE {
@@ -135,7 +137,8 @@ erDiagram
         uuid parent_id FK "issue in journal, sheet in atlas"
         text kind "periodical | issue | map_sheet | filing | dataset | web"
         text title
-        text published_edtf
+        text published_edtf "the imprint"
+        text as_of_edtf "the data cutoff, when stated (I-0003)"
         text identifier "IA item, IIIF manifest"
         text annotation_uri "map sheets: georef annotation"
         text lane "license / retrieval path (I-0006)"
@@ -148,9 +151,10 @@ erDiagram
     }
     REVIEW {
         uuid id PK
-        uuid claim_id FK
+        uuid claim_id FK "a claim or a link, not both"
+        uuid link_id FK
         uuid reviewer_id FK
-        text verdict "accept | reject | correct"
+        text verdict "claims: accept | reject | correct; links: confirm | reject"
         uuid replaced_by_claim_id FK "correct only: the reviewer's new claim"
         text note
     }
@@ -176,8 +180,18 @@ erDiagram
 | `part_of` | section | line | this section belongs to this line |
 | `parallel_to` | section | section | a second pipe beside this one, not the same pipe |
 
-Not drawn: trigger-based history tables on every table, so writes straight from QGIS are
-audited too.
+Not drawn:
+
+- **History.** One `audit.history` table, filled by a trigger on every table: old row, new
+  row, operation, transaction, time and agent. A write with no agent is refused, so writes
+  straight from QGIS are audited too.
+- **`EXTERNAL_KEY`**: `(system, key) -> (entity, id)`, so an importer can run twice without
+  duplicating anything.
+- **`AGENT_TOKEN`** (pipeline API tokens, hashed; some may assert claims for another agent,
+  for importers) and **`AGENT_ROLE`** (a database role used from QGIS -> its person).
+- **Rules the database enforces:** a claim's value fits its attribute; a claim has a
+  citation by commit time (I-0002); claims and links are never edited, only their status
+  moves; a link's ends are the feature kinds its relation allows.
 
 ## Attributes (starting set)
 

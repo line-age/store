@@ -1,0 +1,36 @@
+name: ci
+on:
+  push: {branches: [main]}
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: lineage
+          POSTGRES_PASSWORD: lineage
+          POSTGRES_DB: lineage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lineage" --health-interval 2s --health-retries 30
+    env:
+      LINEAGE_TEST_ADMIN_URL: postgresql://lineage:lineage@localhost:5432/lineage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dbmate
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v2.38.1/dbmate-linux-amd64
+          sudo chmod +x /usr/local/bin/dbmate
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t lineage-${{ github.event.repository.name }}:ci .

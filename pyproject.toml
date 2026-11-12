@@ -1,0 +1,38 @@
+[project]
+name = "lineage-store"
+version = "0.1.0"
+description = "Lineage store: the API in front of the PostGIS database"
+requires-python = ">=3.14"
+dependencies = [
+    "lineage-model",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "psycopg[binary,pool]>=3.2",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+lineage-store = "lineage_store.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.uv.sources]
+lineage-model = { workspace = true }
+
+[tool.uv.workspace]
+members = ["model"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "RUF"]
+ignore = ["E501"]
