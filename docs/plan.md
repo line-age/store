@@ -33,8 +33,8 @@ depends on them.
 
 ## Model changes the traces need
 
-Working through the natural gas import against [model.md](model.md) turned up these. Each
-is small; all of them should go into `model.md` before the first migration.
+Working through the natural gas import against [model.md](model.md) turned up these. All
+of them are now in `model.md` and the first migration.
 
 - **`SOURCE.as_of_edtf`.** Most of the sheets state a data cutoff ("as of June 30, 1955")
   that differs from the imprint. The map-date rule (I-0003) uses the cutoff when there is

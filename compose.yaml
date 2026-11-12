@@ -1,0 +1,37 @@
+# Local development: PostGIS, migrations, and the API. Generic on purpose; a real
+# deployment supplies its own values (controlplane L-0006, L-0009).
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: lineage
+      POSTGRES_PASSWORD: lineage
+      POSTGRES_DB: lineage
+    ports: ["54329:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lineage"]
+      interval: 2s
+      retries: 30
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  migrate:
+    image: ghcr.io/amacneil/dbmate:2.38
+    command: ["--no-dump-schema", "--wait", "up"]
+    environment:
+      DATABASE_URL: postgres://lineage:lineage@db:5432/lineage?sslmode=disable
+      DBMATE_MIGRATIONS_DIR: /db/migrations
+    volumes: ["./db:/db:ro"]
+    depends_on:
+      db: {condition: service_healthy}
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://lineage:lineage@db:5432/lineage
+      LINEAGE_GITHUB_TEAMS: ${LINEAGE_GITHUB_TEAMS:-}
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+
+volumes:
+  pgdata:

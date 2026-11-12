@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.env
+.omc/
+asterix_story_log.json
+db/schema.sql
