@@ -36,7 +36,7 @@ def sections(conn: Connection, bbox: tuple[float, float, float, float] | None, a
     sql = ("SELECT ST_AsGeoJSON(geom) AS geometry, row_id, section_id, label, network, existed_from, existed_to, "
            "time_start, time_end, end_status, date_conflict, line_id, diameter, has_candidates FROM qgis.sections"
            + (" WHERE " + " AND ".join(where) if where else "") + " ORDER BY row_id LIMIT %s")
-    return _feature_collection(conn.execute(sql, args + [limit]).fetchall())
+    return _feature_collection(conn.execute(sql, [*args, limit]).fetchall())
 
 
 def feature(conn: Connection, feature_id: uuid.UUID) -> dict:

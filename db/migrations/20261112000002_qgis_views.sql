@@ -63,24 +63,32 @@ dec AS (
            min(start_earliest) AS widest_lo,
            max(start_latest)   AS widest_hi
     FROM st WHERE value_text = 'decommissioned' GROUP BY section_id
+),
+op_pick AS (   -- the claim that sets the narrowest start, for its EDTF text
+    SELECT DISTINCT ON (section_id) section_id, valid_edtf
+    FROM st WHERE value_text = 'operational'
+    ORDER BY section_id, start_earliest DESC NULLS LAST, start_latest ASC NULLS LAST
+),
+dec_pick AS (  -- the claim that sets the narrowest end
+    SELECT DISTINCT ON (section_id) section_id, valid_edtf
+    FROM st WHERE value_text = 'decommissioned'
+    ORDER BY section_id, start_latest ASC NULLS LAST, start_earliest DESC NULLS LAST
 )
 SELECT s.feature_id AS section_id,
-       -- existed_from: the EDTF of the claim that sets the narrowest start
-       (SELECT valid_edtf FROM st WHERE st.section_id = s.feature_id AND value_text = 'operational'
-        ORDER BY start_earliest DESC NULLS LAST, start_latest ASC NULLS LAST LIMIT 1) AS existed_from,
+       op_pick.valid_edtf                                                           AS existed_from,
        CASE WHEN op.lo > op.hi THEN op.hi
             ELSE coalesce(op.lo, least(op.hi, op.seen)) END                         AS time_start,
        CASE WHEN dec.lo > dec.hi
             THEN coalesce(dec.widest_lo::text, '..') || '/' || coalesce(dec.widest_hi::text, '..')
-            ELSE (SELECT valid_edtf FROM st WHERE st.section_id = s.feature_id AND value_text = 'decommissioned'
-                  ORDER BY start_latest ASC NULLS LAST, start_earliest DESC NULLS LAST LIMIT 1)
-       END                                                                          AS existed_to,
+            ELSE dec_pick.valid_edtf END                                            AS existed_to,
        CASE WHEN dec.lo > dec.hi THEN dec.widest_hi
             ELSE coalesce(dec.hi, dec.lo) END                                       AS time_end,
        coalesce(op.lo > op.hi, false) OR coalesce(dec.lo > dec.hi, false)           AS date_conflict
 FROM store.section s
-LEFT JOIN op  ON op.section_id = s.feature_id
-LEFT JOIN dec ON dec.section_id = s.feature_id;
+LEFT JOIN op       ON op.section_id = s.feature_id
+LEFT JOIN dec      ON dec.section_id = s.feature_id
+LEFT JOIN op_pick  ON op_pick.section_id = s.feature_id
+LEFT JOIN dec_pick ON dec_pick.section_id = s.feature_id;
 
 -- The current route: the newest accepted route claim on the section itself.
 CREATE VIEW store.section_route AS
@@ -166,20 +174,34 @@ rows AS (
            b.date_conflict
     FROM base b
     JOIN store.proposed_end p ON p.section_id = b.section_id AND p.relation = 'overlaps'
+),
+scoped AS (
+    SELECT sc.section_id, c.attribute_key, c.value_num, c.value_unit, l.to_feature_id AS line_id, l.created_at
+    FROM store.claim_scope sc
+    LEFT JOIN store.claim c ON c.feature_id = sc.feature_id AND c.attribute_key = 'diameter' AND c.status = 'accepted'
+    LEFT JOIN store.feature_link l ON l.from_feature_id = sc.feature_id AND l.relation = 'part_of'
+        AND l.status = 'confirmed'
+),
+line_of AS (
+    SELECT DISTINCT ON (section_id) section_id, line_id FROM scoped WHERE line_id IS NOT NULL
+    ORDER BY section_id, created_at DESC
+),
+diameter_of AS (
+    SELECT section_id, string_agg(DISTINCT value_num::text || coalesce(' ' || value_unit, ''), '; ') AS diameter
+    FROM scoped WHERE value_num IS NOT NULL GROUP BY section_id
+),
+candidates AS (
+    SELECT DISTINCT feature_id FROM store.claim WHERE status = 'candidate'
 )
 SELECT r.row_id, r.section_id,
        ST_Multi(ST_CollectionExtract(r.geom, 2))::geometry(MultiLineString, 4326) AS geom,
        r.label, r.network, r.existed_from, r.existed_to, r.time_start, r.time_end,
-       r.end_status, r.date_conflict,
-       (SELECT l.to_feature_id FROM store.claim_scope sc
-        JOIN store.feature_link l ON l.from_feature_id = sc.feature_id
-        WHERE sc.section_id = r.section_id AND l.relation = 'part_of' AND l.status = 'confirmed'
-        ORDER BY l.created_at DESC LIMIT 1) AS line_id,
-       (SELECT string_agg(DISTINCT c.value_num::text || coalesce(' ' || c.value_unit, ''), '; ')
-        FROM store.claim_scope sc JOIN store.claim c ON c.feature_id = sc.feature_id
-        WHERE sc.section_id = r.section_id AND c.attribute_key = 'diameter' AND c.status = 'accepted') AS diameter,
-       EXISTS (SELECT 1 FROM store.claim c WHERE c.feature_id = r.section_id AND c.status = 'candidate') AS has_candidates
+       r.end_status, r.date_conflict, lo.line_id, d.diameter,
+       (ca.feature_id IS NOT NULL) AS has_candidates
 FROM rows r
+LEFT JOIN line_of lo ON lo.section_id = r.section_id
+LEFT JOIN diameter_of d ON d.section_id = r.section_id
+LEFT JOIN candidates ca ON ca.feature_id = r.section_id
 WHERE NOT ST_IsEmpty(ST_CollectionExtract(r.geom, 2));
 
 CREATE VIEW qgis.removals AS
