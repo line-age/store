@@ -3,6 +3,7 @@
     lineage-store serve
     lineage-store token create backport --pipeline backport@742973e --assert-for-others
     lineage-store token revoke <token-id>
+    lineage-store agent add --github jdoe --name "Jane Doe" --email jane@example.org
     lineage-store role map jdoe --github jdoe        # a QGIS database role -> that person's agent
     lineage-store qgis install --host db.example --port 5432   # the ready-made QGIS project
 """
@@ -34,12 +35,18 @@ def main(argv: list[str] | None = None) -> None:
     r = tok.add_parser("revoke")
     r.add_argument("token_id")
 
+    ag = sub.add_parser("agent", help="people").add_subparsers(dest="acmd", required=True)
+    aa = ag.add_parser("add", help="add a person by GitHub login, or update the one already there")
+    aa.add_argument("--github", required=True, help="their GitHub login")
+    aa.add_argument("--name", help="their name (default: the login)")
+    aa.add_argument("--email", help="their email")
+
     role = sub.add_parser("role", help="database roles for direct QGIS access").add_subparsers(dest="rcmd", required=True)
     m = role.add_parser("map", help="attribute a database role's writes to a person")
     m.add_argument("role")
     m.add_argument("--github", required=True, help="the person's GitHub login")
-    m.add_argument("--name", help="their name, if they have no agent yet")
-    m.add_argument("--email", help="their email, if they have no agent yet")
+    m.add_argument("--name", help="their name")
+    m.add_argument("--email", help="their email")
 
     q = sub.add_parser("qgis", help="QGIS project and style in the database").add_subparsers(dest="qcmd", required=True)
     qi = q.add_parser("install", help="install or replace the Lineage project and the default sections style")
@@ -86,16 +93,30 @@ def main(argv: list[str] | None = None) -> None:
                 cs = qgis.connection_string(args.host, args.port, args.dbname, args.user, args.password)
                 qgis.install(conn, cs, args.dbname)
                 print(f"installed QGIS project {qgis.PROJECT_NAME!r} in qgis.qgis_projects for {args.host}:{args.port}")
+            elif args.cmd == "agent":
+                agent_id, created = person(conn, args.github, args.name, args.email)
+                print(f"{'added' if created else 'updated'} @{args.github} -> agent {agent_id}")
             elif args.cmd == "role":
-                row = conn.execute("SELECT id FROM store.agent WHERE github_login = %s", (args.github,)).fetchone()
-                agent_id = row["id"] if row else conn.execute(
-                    "INSERT INTO store.agent (kind, name, github_login, email) VALUES ('person', %s, %s, %s) RETURNING id",
-                    (args.name or args.github, args.github, args.email)).fetchone()["id"]
+                agent_id, _ = person(conn, args.github, args.name, args.email)
                 conn.execute("INSERT INTO store.agent_role (role, agent_id) VALUES (%s, %s) "
                              "ON CONFLICT (role) DO UPDATE SET agent_id = EXCLUDED.agent_id", (args.role, agent_id))
                 print(f"role {args.role} -> agent {agent_id}")
     finally:
         db.close()
+
+
+def person(conn, github: str, name: str | None, email: str | None):
+    """The person with this GitHub login, made if new. A name or email given replaces the
+    one stored; one left out keeps it."""
+    row = conn.execute("SELECT id FROM store.agent WHERE github_login = %s", (github,)).fetchone()
+    if not row:
+        new = conn.execute("INSERT INTO store.agent (kind, name, github_login, email) VALUES ('person', %s, %s, %s) "
+                           "RETURNING id", (name or github, github, email)).fetchone()
+        return new["id"], True
+    conn.execute("""UPDATE store.agent SET name = coalesce(%s, name), email = coalesce(%s, email)
+                    WHERE id = %s AND (name IS DISTINCT FROM coalesce(%s, name) OR email IS DISTINCT FROM coalesce(%s, email))""",
+                 (name, email, row["id"], name, email))
+    return row["id"], False
 
 
 if __name__ == "__main__":

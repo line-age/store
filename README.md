@@ -55,7 +55,8 @@ Every write names an agent, or the database refuses it.
   write claims asserted by the people whose work it carries.
 - **People** send a GitHub token. They must be in one of `LINEAGE_GITHUB_TEAMS`
   (`org/team-slug`, comma-separated); their agent is created on first sight, matched by
-  GitHub login.
+  GitHub login. To add someone before they sign in, or fix their name or email:
+  `docker compose exec api lineage-store agent add --github <login> --name "<name>" --email <email>`.
 - **QGIS against PostGIS directly**: give each person a database role, and
   `docker compose exec api lineage-store role map <role> --github <login>`.
 

@@ -167,7 +167,13 @@ def test_cli_tokens_and_roles(database_url, client, sql, monkeypatch, capsys):
     cli.main(["token", "revoke", tid_line.split()[-1]])
     assert capsys.readouterr().out.strip() == "no live token with that id"
 
-    cli.main(["role", "map", "qgis_dana", "--github", "dana", "--name", "Dana Example"])
+    cli.main(["agent", "add", "--github", "dana", "--name", "Dana", "--email", "dana@example.org"])
+    assert capsys.readouterr().out.startswith("added @dana")
+    cli.main(["agent", "add", "--github", "dana", "--name", "Dana Example"])     # a fuller name; email kept
+    assert capsys.readouterr().out.startswith("updated @dana")
+    assert sql.execute("SELECT name, email FROM store.agent WHERE github_login = 'dana'").fetchone() == {
+        "name": "Dana Example", "email": "dana@example.org"}
+    cli.main(["role", "map", "qgis_dana", "--github", "dana"])
     cli.main(["role", "map", "qgis_dana2", "--github", "dana"])           # a second role, same person
     agents = sql.execute("SELECT DISTINCT agent_id FROM store.agent_role WHERE role IN ('qgis_dana', 'qgis_dana2')").fetchall()
     assert len(agents) == 1
