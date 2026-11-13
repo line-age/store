@@ -173,7 +173,8 @@ def insert_claim(conn: Connection, who: Principal, c: ClaimIn, resolve) -> uuid.
 
 def upsert_agent(conn: Connection, who: Principal, a: AgentIn) -> tuple[uuid.UUID, bool]:
     """Find or create an agent. Used by importers to name the people whose work they carry
-    (a tracer code that is also a GitHub user is one agent, not two)."""
+    (a tracer code that is also a GitHub user is one agent, not two). Running it again with
+    a new name or a GitHub login updates the agent."""
     if not who.may_assert_for_others:
         raise HTTPException(403, "only a token allowed to assert for others registers agents")
     by_key = _existing(conn, a.external_key, "agent")
@@ -186,6 +187,8 @@ def upsert_agent(conn: Connection, who: Principal, a: AgentIn) -> tuple[uuid.UUI
                                  "are two different agents already")
     found = by_key or by_login
     if found:
+        # the importer's list is where these names come from: a corrected name replaces the old
+        conn.execute("UPDATE store.agent SET name = %s WHERE id = %s AND name <> %s", (a.name, found, a.name))
         if a.github_login and not by_login:
             conn.execute("UPDATE store.agent SET github_login = %s WHERE id = %s", (a.github_login, found))
         if a.external_key and not by_key:

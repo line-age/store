@@ -119,6 +119,14 @@ def test_agent_conflict(api):
     assert "two different agents" in r["detail"]
 
 
+def test_agent_name_follows_the_importer(api, sql):
+    k = {"system": "test", "key": "tracer:renamed"}
+    first = api["backport"].post("/agents", {"kind": "person", "name": "abc", "external_key": k})
+    again = api["backport"].post("/agents", {"kind": "person", "name": "Ann B. Cee", "external_key": k})
+    assert again["id"] == first["id"]
+    assert sql.execute("SELECT name FROM store.agent WHERE id = %s", (first["id"],)).fetchone()["name"] == "Ann B. Cee"
+
+
 def test_reads_and_their_refusals(api):
     _, section = fresh(api)
     _, link = removal(api["ann"], line(HOBBS, JAL), section)
