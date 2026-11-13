@@ -1,0 +1,33 @@
+db/migrations/20261112000001_core.sql
+  s_111c4f7ff198f4::t_da5ae1abf8cb35 19
+docs/model.md
+  s_111c4f7ff198f4::t_e5d055e3500140 150
+model/src/lineage_model/shapes.py
+  s_111c4f7ff198f4::t_82596449b2bd85 147
+src/lineage_store/auth.py
+  s_111c4f7ff198f4::t_ce10802e378b7b 91,99-102
+src/lineage_store/cli.py
+  s_111c4f7ff198f4::t_03a11a829731ed 42,92-93
+src/lineage_store/writes.py
+  s_111c4f7ff198f4::t_016a6743c67a9d 177,190,192-194,200-201
+tests/conftest.py
+  s_111c4f7ff198f4::t_0d7b507176fa15 60-61
+tests/test_edges.py
+  s_111c4f7ff198f4::t_3e43a3f0f207cd 125-126,128-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "597ece6e9fc340ddbcf788450544ac552f5fe342",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
