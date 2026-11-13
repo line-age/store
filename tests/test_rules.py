@@ -6,7 +6,7 @@ from __future__ import annotations
 import psycopg
 import pytest
 from lineage_model import ATTRIBUTES, by
-from test_scenarios import HOBBS, JAL, line, sheet, trace, valid
+from test_scenarios import HOBBS, JAL, SHEET_1937, line, sheet, trace, valid
 
 
 def test_registry_matches_migration(sql):
@@ -16,7 +16,16 @@ def test_registry_matches_migration(sql):
         r = rows[key]
         assert (r["value_type"], r["cardinality"], tuple(r["feature_kinds"])) == (a.value_type, a.cardinality, a.feature_kinds)
         assert (tuple(r["networks"]) if r["networks"] else None) == a.networks
-        assert (tuple(r["enum_values"]) if r["enum_values"] else None) == a.enum_values
+        assert (tuple(r["enum_values"]) if r["enum_values"] is not None else None) == a.enum_values
+
+
+def test_commodity_is_reserved(api):
+    s = sheet(api["ann"], 1937, SHEET_1937)
+    section, _ = trace(api["ann"], s, line(HOBBS, JAL), as_of=SHEET_1937)
+    r = api["ann"].post("/bundles", {"citations": [{"ref": "c", "source": s}],
+                                     "claims": [{"feature": section, "attribute": "commodity", "value_text": "natural_gas",
+                                                 "citations": [{"citation": "c", "role": "states"}]}]}, expect=422)
+    assert "commodity" in r["detail"]
 
 
 def test_write_without_agent_is_refused(database_url):
