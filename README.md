@@ -79,7 +79,7 @@ OpenAPI docs are at `/docs` while it runs.
 
 No setup: in QGIS, **Project → Open From → PostgreSQL**, pick the connection, schema
 `qgis`, project **Lineage**. It opens with the sections on a time slider (1929 to 1998, a
-year a step) over OpenStreetMap. Removals still waiting for review are thick red lines,
+year a step) over OpenStreetMap. Removals still waiting for review are thick magenta lines,
 from the earliest date each could have happened; once a reviewer confirms which section a
 removal ended, it disappears, and that section ends instead. Proposed links and county
 lines are layers you can switch on. Click a section or removal with **Identify** to see the claims behind
