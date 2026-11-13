@@ -1,0 +1,25 @@
+README.md
+  s_111c4f7ff198f4::t_73b6a37f0de13e 97-99
+src/lineage_store/qgis/__init__.py
+  s_111c4f7ff198f4::t_dc25c8ece8c7cf 4-6,31-34,36
+src/lineage_store/qgis/lineage.qgs
+  s_111c4f7ff198f4::t_690b04a43f7eaa 38,43,48,140,516,881
+tests/test_qgis.py
+  s_111c4f7ff198f4::t_85b0476bad324c 9,19-20,39-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "0a09ce1530fa5c354a303fe640ae8aa097e08029",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
