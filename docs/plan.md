@@ -65,8 +65,8 @@ So the model can be checked against it before any code exists.
 | In the GeoPackage | In `store` |
 | --- | --- |
 | one `sheets` row | `SOURCE` of kind `map_sheet`, with `as_of_edtf`; its scan files as identifiers |
-| one traced line (`base` or `add`) | `FEATURE` (section) with a `route` claim and a `commodity` claim |
-| the sheet it first appears on | `CITATION` to that sheet, role `map_shows`, on both claims |
+| one traced line (`base` or `add`) | `FEATURE` (section), network `gas`, with a `route` claim |
+| the sheet it first appears on | `CITATION` to that sheet, role `map_shows`, on its claims |
 | `existed_from` (`../1953-12-31`) | a `status: operational` claim, `valid_edtf` as written |
 | the tracer code | `AGENT` (person) who asserted the `route` claim |
 | one removal (`sub`) trace | its own `FEATURE` (section): `route` claim cited to the earlier sheet (`map_shows`), and an end of `status` cited to the later sheet (`map_omits`) |
