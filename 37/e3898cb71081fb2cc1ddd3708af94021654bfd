@@ -1,0 +1,27 @@
+db/migrations/20261112000006_commodity_reserved.sql
+  s_111c4f7ff198f4::t_dbc1deedcf740e 1-21
+docs/model.md
+  s_111c4f7ff198f4::t_c9466546facfb0 203,214-219,251
+docs/plan.md
+  s_111c4f7ff198f4::t_75bf3b43d8eac3 68-69
+model/src/lineage_model/attributes.py
+  s_111c4f7ff198f4::t_c6ee1d4159d69c 23-25
+tests/test_rules.py
+  s_111c4f7ff198f4::t_81574eb90f1d40 9,19-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "37e3898cb71081fb2cc1ddd3708af94021654bfd",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
