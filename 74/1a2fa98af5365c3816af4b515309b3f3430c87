@@ -1,0 +1,23 @@
+README.md
+  s_111c4f7ff198f4::t_c6f4939724538d 58-59
+src/lineage_store/cli.py
+  s_111c4f7ff198f4::t_b4394636fb581c 6,38-43,48-49,96-98,100,108-121
+tests/test_edges.py
+  s_111c4f7ff198f4::t_d8f40b68e58fd8 170-176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "741a2fa98af5365c3816af4b515309b3f3430c87",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
