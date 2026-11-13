@@ -42,3 +42,4 @@ def test_the_repo_file_opens_on_the_compose_database():
     from importlib import resources
     qgs = resources.files("lineage_store.qgis").joinpath("lineage.qgs").read_text()
     assert qgs.count(DEV_CONNECTION) == 6
+    assert "<DefaultViewExtent" in qgs and "<mapcanvas" in qgs     # opens on the US, not on 0,0
