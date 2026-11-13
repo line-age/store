@@ -25,6 +25,18 @@ services:
     depends_on:
       db: {condition: service_healthy}
 
+  # The ready-made QGIS project (Project > Open From > PostgreSQL > qgis > Lineage) and the
+  # default style for qgis.sections. Local credentials go in the project; a real deployment
+  # runs `lineage-store qgis install` without them.
+  qgis-project:
+    build: .
+    command: ["lineage-store", "qgis", "install", "--host", "localhost", "--port", "${LINEAGE_DB_PORT:-47119}",
+              "--user", "lineage", "--password", "lineage"]
+    environment:
+      DATABASE_URL: postgresql://lineage:lineage@db:5432/lineage
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+
   api:
     build: .
     environment:

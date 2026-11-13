@@ -139,7 +139,9 @@ to:
   `time_start` and `time_end` collapsed per Legend 0011, plus claim and review status.
 - `qgis.removals`, and `qgis.proposed_links` drawn as lines between the two features.
 - A QGIS project stored in the database (QGIS can save projects to Postgres) with the
-  temporal settings already on, so opening it is one step.
+  temporal settings already on, so opening it is one step. Done: `lineage-store qgis install`
+  writes it to `qgis.qgis_projects`, with a default style for `qgis.sections` in
+  `public.layer_styles` (the only place QGIS reads default styles from).
 
 Editing through these views, for example correcting a route in QGIS, is a later question.
 The views are read-only in v0.
