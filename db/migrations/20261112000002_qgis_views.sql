@@ -18,11 +18,15 @@ CREATE SCHEMA qgis;
 
 -- Removals ---------------------------------------------------------------------------------
 
+-- A feature made to record a line gone from a map: a decommissioned claim cited `map_omits`.
+-- It stays a removal whatever happens to that claim, so it is never drawn as a section;
+-- `standing` says whether the claim still holds (false once a reviewer rejects it as wrong).
 CREATE VIEW store.removal AS
-SELECT DISTINCT c.feature_id
+SELECT c.feature_id, bool_or(c.status = 'accepted') AS standing
 FROM store.claim c
 JOIN store.claim_citation cc ON cc.claim_id = c.id AND cc.role = 'map_omits'
-WHERE c.attribute_key = 'status' AND c.value_text = 'decommissioned' AND c.status = 'accepted';
+WHERE c.attribute_key = 'status' AND c.value_text = 'decommissioned'
+GROUP BY c.feature_id;
 
 -- Which features' claims describe a section ----------------------------------------------
 
@@ -117,7 +121,7 @@ CREATE VIEW store.proposed_end AS
 SELECT l.id AS link_id, l.relation, l.score, l.to_feature_id AS section_id,
        l.from_feature_id AS removal_id, d.existed_to, d.time_end, rr.geom AS removal_geom
 FROM store.feature_link l
-JOIN store.removal rm ON rm.feature_id = l.from_feature_id
+JOIN store.removal rm ON rm.feature_id = l.from_feature_id AND rm.standing
 JOIN store.section_dates d ON d.section_id = l.from_feature_id
 JOIN store.section_route rr ON rr.section_id = l.from_feature_id
 WHERE l.status = 'proposed' AND l.relation IN ('same_as', 'overlaps');
@@ -218,7 +222,8 @@ SELECT * FROM all_rows;
 -- The same fence, for the same reason.
 -- Removals still waiting for a decision: a map shows a line gone and nobody has yet confirmed
 -- which section it ended. Once a link from it is confirmed, its end date is the section's
--- and it drops out of here; rejecting its decommissioned claim drops it too. On the time
+-- and it drops out of here. A removal that's simply wrong: reject its decommissioned claim
+-- and it drops out too, drawn as nothing. On the time
 -- slider it appears from the earliest date it could have happened and stays: a removal
 -- never stops having happened.
 CREATE VIEW qgis.removals AS
@@ -234,7 +239,8 @@ WITH all_rows AS MATERIALIZED (
     FROM store.removal rm
     JOIN store.section_route r ON r.section_id = rm.feature_id
     JOIN store.section_dates d ON d.section_id = rm.feature_id
-    WHERE NOT EXISTS (SELECT 1 FROM store.feature_link l WHERE l.from_feature_id = rm.feature_id
+    WHERE rm.standing
+      AND NOT EXISTS (SELECT 1 FROM store.feature_link l WHERE l.from_feature_id = rm.feature_id
                       AND l.relation IN ('same_as', 'overlaps') AND l.status = 'confirmed')
 )
 SELECT * FROM all_rows;

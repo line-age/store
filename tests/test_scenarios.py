@@ -140,6 +140,18 @@ def test_case2_rejected_link_leaves_line_open(api, sql):
         "match_status"] == "unmatched"
 
 
+def test_case2_removal_that_is_simply_wrong(api, sql):
+    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    rm, _ = removal(api["ann"], line(HOBBS, JAL), section)
+    gone = next(c for c in api["ann"].get(f"/features/{rm}")["claims"] if c["value_text"] == "decommissioned")
+    api["ann"].post(f"/claims/{gone['id']}/reviews", {"verdict": "reject"})
+    # not waiting for review, not drawn as a section, and no proposed end left on the line
+    assert sql.execute("SELECT 1 FROM qgis.removals WHERE removal_id = %s", (rm,)).fetchone() is None
+    assert rows(sql, rm) == []
+    [r] = rows(sql, section)
+    assert (r["time_end"], r["end_status"]) == (None, None)
+
+
 def test_case3_disagreement_widens_and_flags(api, sql):
     section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
     _, link = removal(api["ann"], line(HOBBS, JAL), section)
