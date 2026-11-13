@@ -42,9 +42,26 @@ container, which already has the database URL:
 docker compose exec api lineage-store token create backport --pipeline backport@<sha> --assert-for-others
 ```
 
-The image is `Dockerfile` (the API, `lineage-store serve`); migrations run from the stock
-dbmate image against `db/migrations`. For working on the code itself, `uv run lineage-store
-serve` against the Compose database also works.
+For working on the code itself, `uv run lineage-store serve` against the Compose database
+also works.
+
+## Images
+
+CI publishes two public images for amd64 and arm64, from `main` (tags `main` and
+`sha-<commit>`) and from `v*` git tags (`1.2.3` and `1.2`):
+
+| Image | What it runs |
+| --- | --- |
+| `ghcr.io/line-age/store` | the API (default command), `lineage-store` admin commands, and the migrations: `dbmate up` |
+| `ghcr.io/line-age/store-counties` | `load-counties`, the historical county lines for the QGIS project |
+
+Both take the database from the environment: `DATABASE_URL` for `store`, `PG_URL` (GDAL
+form) for `store-counties`. The API also reads `LINEAGE_GITHUB_TEAMS`,
+`LINEAGE_GITHUB_API` and `LINEAGE_AUTH_CACHE_SECONDS`. The database must have PostGIS
+available: the first migration runs `CREATE EXTENSION postgis`, so its user needs the
+right to, or the extension must already be there. The `deploy` repo's Helm chart runs
+these images; Compose here still runs migrations from the stock dbmate image against
+`db/migrations`.
 
 ## Who can write
 
