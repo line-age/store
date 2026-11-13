@@ -119,6 +119,23 @@ def test_agent_conflict(api):
     assert "two different agents" in r["detail"]
 
 
+def test_agent_name_follows_the_importer(api, sql):
+    k = {"system": "test", "key": "tracer:renamed"}
+    first = api["backport"].post("/agents", {"kind": "person", "name": "abc", "external_key": k})
+    again = api["backport"].post("/agents", {"kind": "person", "name": "Ann B. Cee", "email": "abc@example.org",
+                                             "external_key": k})
+    assert again["id"] == first["id"]
+    row = sql.execute("SELECT name, email FROM store.agent WHERE id = %s", (first["id"],)).fetchone()
+    assert row == {"name": "Ann B. Cee", "email": "abc@example.org"}
+
+
+def test_github_sign_in_keeps_a_public_email(api, sql):
+    for who in ("ann", "bob"):                      # ann shows an email on GitHub, bob doesn't
+        api[who].get("/me")
+    rows = sql.execute("SELECT github_login, email FROM store.agent WHERE github_login IN ('ann', 'bob')").fetchall()
+    assert {r["github_login"]: r["email"] for r in rows} == {"ann": "ann@example.org", "bob": None}
+
+
 def test_reads_and_their_refusals(api):
     _, section = fresh(api)
     _, link = removal(api["ann"], line(HOBBS, JAL), section)
@@ -150,7 +167,13 @@ def test_cli_tokens_and_roles(database_url, client, sql, monkeypatch, capsys):
     cli.main(["token", "revoke", tid_line.split()[-1]])
     assert capsys.readouterr().out.strip() == "no live token with that id"
 
-    cli.main(["role", "map", "qgis_dana", "--github", "dana", "--name", "Dana Example"])
+    cli.main(["agent", "add", "--github", "dana", "--name", "Dana", "--email", "dana@example.org"])
+    assert capsys.readouterr().out.startswith("added @dana")
+    cli.main(["agent", "add", "--github", "dana", "--name", "Dana Example"])     # a fuller name; email kept
+    assert capsys.readouterr().out.startswith("updated @dana")
+    assert sql.execute("SELECT name, email FROM store.agent WHERE github_login = 'dana'").fetchone() == {
+        "name": "Dana Example", "email": "dana@example.org"}
+    cli.main(["role", "map", "qgis_dana", "--github", "dana"])
     cli.main(["role", "map", "qgis_dana2", "--github", "dana"])           # a second role, same person
     agents = sql.execute("SELECT DISTINCT agent_id FROM store.agent_role WHERE role IN ('qgis_dana', 'qgis_dana2')").fetchall()
     assert len(agents) == 1

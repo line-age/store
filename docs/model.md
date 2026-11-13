@@ -147,6 +147,7 @@ erDiagram
         uuid id PK
         text kind "person | pipeline"
         text github_login
+        text email "people"
         text pipeline "name, version, run"
     }
     REVIEW {

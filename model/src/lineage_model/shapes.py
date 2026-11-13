@@ -144,6 +144,7 @@ class AgentIn(BaseModel):
     kind: Literal["person", "pipeline"]
     name: str
     github_login: str | None = None
+    email: str | None = None
     pipeline: str | None = None
     external_key: ExternalKey | None = None
 
