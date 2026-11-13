@@ -24,7 +24,7 @@ def test_connection_string():
 def test_project_is_a_qgz_with_every_layer_connected():
     qgs = zipfile.ZipFile(io.BytesIO(project_qgz("dbname='x' host=h port=1"))).read(f"{PROJECT_NAME}.qgs").decode()
     assert "host=localhost" not in qgs
-    for view in ("sections", "removals", "proposed_links", "counties"):
+    for view in ("sections", "removals", "proposed_links", "counties", "claims"):
         assert re.search(rf"<datasource>dbname='x' host=h port=1 key='\w+' [^<]*table=\"qgis\".\"{view}\"", qgs), view
     assert 'startField="time_start"' in qgs and 'endField="time_end"' in qgs
     assert "setNavigationMode" in qgs                       # the open macro
@@ -47,13 +47,14 @@ def test_install_twice(database_url, sql, monkeypatch, capsys):
 def test_the_repo_file_opens_on_the_compose_database():
     from importlib import resources
     qgs = resources.files("lineage_store.qgis").joinpath("lineage.qgs").read_text()
-    assert qgs.count("<datasource>" + DEV_CONNECTION) == 4  # sections, removals, proposed links, counties
+    assert qgs.count("<datasource>" + DEV_CONNECTION) == 5  # sections, removals, proposed links, counties, claims
     assert "host=" not in qgs.replace(DEV_CONNECTION, "").replace(DEV_CONNECTION_NO_PASSWORD, "")
     assert "<DefaultViewExtent" in qgs and "<mapcanvas" in qgs     # opens on the US, not on 0,0
     assert 'checked="Qt::Unchecked" expanded="1" id="Counties__' in qgs     # county lines start off
     assert 'checked="Qt::Checked" expanded="1" id="Removals__' in qgs                 # removals start on
     assert "&quot;qgis&quot;.&quot;counties&quot;" in qgs or '"qgis"."counties"' in qgs
     assert "tile.openstreetmap.org" in qgs
+    assert 'name="Claims behind this section"' in qgs and 'name="Claims behind this removal"' in qgs
 
 
 def test_counties_view_has_the_slider_fields(sql):

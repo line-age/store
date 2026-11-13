@@ -116,6 +116,12 @@ def test_case2_shutdown_confirmed_and_pinned(api, sql):
                      "time_start": dt.date(1955, 6, 30), "time_end": None}
 
     api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
+    # QGIS lists what's behind the line: its own claims, and now the removal's, marked inherited
+    behind = sql.execute("SELECT attribute, value, role, inherited FROM qgis.claims WHERE section_id = %s",
+                         (section,)).fetchall()
+    assert {(b["attribute"], b["role"], b["inherited"]) for b in behind if b["attribute"] == "status"} == {
+        ("status", "map_shows", False), ("status", "map_omits", True)}
+
     # resolved: the end date is the section's now, so the removal leaves the QGIS view
     assert sql.execute("SELECT 1 FROM qgis.removals WHERE removal_id = %s", (rm,)).fetchone() is None
     [r] = rows(sql, section)

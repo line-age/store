@@ -266,6 +266,30 @@ WHERE c.attribute_key = 'route' AND c.status = 'rejected'
   AND NOT EXISTS (SELECT 1 FROM store.section_route r WHERE r.section_id = c.feature_id)
 ORDER BY c.feature_id, c.created_at DESC;
 
+-- What's behind a section or removal: one row per claim and citation, including the claims
+-- it takes from features merged into it. No geometry; the QGIS project relates it to
+-- qgis.sections and qgis.removals on section_id, so Identify lists it under the line.
+CREATE VIEW qgis.claims AS
+SELECT md5(c.id::text || cc.citation_id::text || cc.role)::uuid AS row_id,
+       sc.section_id, c.id AS claim_id, c.attribute_key AS attribute,
+       CASE WHEN c.value_geom IS NOT NULL
+                THEN round((ST_Length(c.value_geom::geography) / 1000)::numeric, 1) || ' km traced'
+            WHEN c.value_num IS NOT NULL THEN c.value_num || coalesce(' ' || c.value_unit, '')
+            WHEN c.value_feature_id IS NOT NULL THEN coalesce(vf.label, c.value_feature_id::text)
+            ELSE c.value_text END AS value,
+       c.valid_edtf AS valid, c.status, a.name AS asserted_by, a.kind AS asserted_by_kind,
+       cc.role, s.title AS source, s.kind AS source_kind, s.as_of_edtf AS source_as_of,
+       ci.locator, ci.quote, ci.url,
+       sc.feature_id <> sc.section_id AS inherited,   -- from a feature merged into this one
+       c.created_at
+FROM store.claim_scope sc
+JOIN store.claim c ON c.feature_id = sc.feature_id
+JOIN store.agent a ON a.id = c.asserted_by
+JOIN store.claim_citation cc ON cc.claim_id = c.id
+JOIN store.citation ci ON ci.id = cc.citation_id
+JOIN store.source s ON s.id = ci.source_id
+LEFT JOIN store.feature vf ON vf.id = c.value_feature_id;
+
 -- migrate:down
 
 DROP SCHEMA qgis CASCADE;
