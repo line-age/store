@@ -79,11 +79,17 @@ OpenAPI docs are at `/docs` while it runs.
 
 No setup: in QGIS, **Project → Open From → PostgreSQL**, pick the connection, schema
 `qgis`, project **Lineage**. It opens with the sections on a time slider (1929 to 1998, a
-year a step) over OpenStreetMap, and the removals, proposed links and county lines (2023
-Census boundaries, read from census.gov) as layers you can switch on. Proposed
+year a step) over OpenStreetMap, and the removals, proposed links and county lines as layers you
+can switch on. The county lines follow the slider: each year shows the counties as they
+stood then, so they match the old maps. Proposed
 ends are dashed; sections whose sources disagree on dates are purple. Allow the project's
 macro when QGIS asks: it puts the Temporal Controller in animated mode, which QGIS doesn't
 save in projects. Without it, click the animated button in the Temporal Controller.
+
+The county lines come from the Newberry Library's [Atlas of Historical County
+Boundaries](https://digital.newberry.org/ahcb/) (free to reuse), simplified to about
+100 m. Compose's `counties` service loads them into `reference.historical_county` the
+first time (a ~50 MB download); `docker compose run --rm -e FORCE=1 counties` reloads.
 
 The connection is the database Compose runs: host `localhost`, port `47119`, database
 `lineage`, user and password `lineage`.

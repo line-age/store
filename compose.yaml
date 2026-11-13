@@ -37,6 +37,14 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
 
+  counties:
+    # Historical county lines for the QGIS project; downloads ~50 MB the first time only.
+    build: {context: ., dockerfile: docker/counties.Dockerfile}
+    environment:
+      PG_URL: "PG:host=db port=5432 dbname=lineage user=lineage password=lineage"
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+
   api:
     build: .
     environment:
