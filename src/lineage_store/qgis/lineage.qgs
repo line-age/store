@@ -50,12 +50,12 @@
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec" legend_exp="" legend_split_behavior="0" name="Counties (2023 Census boundaries)" patch_size="-1,-1" providerKey="ogr" source="/vsizip//vsicurl/https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip/cb_2023_us_county_500k.shp">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0" legend_exp="" legend_split_behavior="0" name="Counties (as they stood that year)" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' key='county_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;counties&quot; (geom)">
       <customproperties>
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" expanded="1" id="OpenStreetMap_1e38a8a6_9149_4e9d_9470_d2db54061be4" legend_exp="" legend_split_behavior="0" name="OpenStreetMap" patch_size="-1,-1" providerKey="wms" source="type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="OpenStreetMap_1e38a8a6_9149_4e9d_9470_d2db54061be4" legend_exp="" legend_split_behavior="0" name="OpenStreetMap" patch_size="-1,-1" providerKey="wms" source="crs=EPSG%3A3857&amp;format&amp;type=xyz&amp;url=https%3A%2F%2Ftile.openstreetmap.org%2F%7Bz%7D%2F%7Bx%7D%2F%7By%7D.png&amp;zmax=19&amp;zmin=0">
       <customproperties>
         <Option/>
       </customproperties>
@@ -64,13 +64,13 @@
       <item>Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d</item>
       <item>Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf</item>
       <item>Sections_f229951d_479b_4b82_8214_d409f0a149ef</item>
-      <item>Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec</item>
       <item>OpenStreetMap_1e38a8a6_9149_4e9d_9470_d2db54061be4</item>
+      <item>Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0</item>
     </custom-order>
   </layer-tree-group>
   <snapping-settings enabled="0" intersection-snapping="0" maxScale="0" minScale="0" mode="2" scaleDependencyMode="0" self-snapping="0" tolerance="12" type="1" unit="1">
     <individual-layer-settings>
-      <layer-setting enabled="1" id="Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec" maxScale="0" minScale="0" tolerance="12" type="1" units="1"/>
+      <layer-setting enabled="1" id="Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0" maxScale="0" minScale="0" tolerance="12" type="1" units="1"/>
       <layer-setting enabled="1" id="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d" maxScale="0" minScale="0" tolerance="12" type="1" units="1"/>
       <layer-setting enabled="1" id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" maxScale="0" minScale="0" tolerance="12" type="1" units="1"/>
       <layer-setting enabled="1" id="Sections_f229951d_479b_4b82_8214_d409f0a149ef" maxScale="0" minScale="0" tolerance="12" type="1" units="1"/>
@@ -81,10 +81,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>-13376805.23253326117992401</xmin>
-      <ymin>2626824.7529922854155302</ymin>
-      <xmax>-6699491.10978339985013008</xmax>
-      <ymax>6381240.28017199970781803</ymax>
+      <xmin>-13914936.34915919788181782</xmin>
+      <ymin>2753408.109364980366081</ymin>
+      <xmax>-7347086.39235605485737324</xmax>
+      <ymax>6446275.84101715870201588</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -120,9 +120,9 @@
         <legendlayerfile isInOverview="0" layerid="Sections_f229951d_479b_4b82_8214_d409f0a149ef" visible="1"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Counties (2023 Census boundaries)" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Counties (as they stood that year)" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0" visible="0"/>
       </filegroup>
     </legendlayer>
     <legendlayer checked="Qt::Checked" drawingOrder="-1" name="OpenStreetMap" open="true" showFeatureCount="0">
@@ -192,30 +192,30 @@
   <projectlayers>
     <maplayer autoRefreshMode="Disabled" autoRefreshTime="0" geometry="Polygon" hasScaleBasedVisibilityFlag="0" labelsEnabled="0" layerType="Vector" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="MultiPolygon">
       <extent>
-        <xmin>-179.14671100000001047</xmin>
-        <ymin>-14.54869899999999916</ymin>
-        <xmax>179.77846999999999866</xmax>
-        <ymax>71.38781500000000335</ymax>
+        <xmin>-179.14735543087488168</xmin>
+        <ymin>18.91084480135653934</ymin>
+        <xmax>-66.94992613102355961</xmax>
+        <ymax>71.38961213849690068</ymax>
       </extent>
       <wgs84extent>
-        <xmin>-179.14671100000001047</xmin>
-        <ymin>-14.54869899999999916</ymin>
-        <xmax>179.77846999999999866</xmax>
-        <ymax>71.38781500000000335</ymax>
+        <xmin>-179.14735543087488168</xmin>
+        <ymin>18.91084480135653934</ymin>
+        <xmax>-66.94992613102355961</xmax>
+        <ymax>71.38961213849690068</ymax>
       </wgs84extent>
-      <id>Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec</id>
-      <datasource>/vsizip//vsicurl/https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip/cb_2023_us_county_500k.shp</datasource>
-      <layername>Counties (2023 Census boundaries)</layername>
+      <id>Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0</id>
+      <datasource>dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='county_id' checkPrimaryKeyUnicity='0' table="qgis"."counties" (geom)</datasource>
+      <layername>Counties (as they stood that year)</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
-          <wkt>GEOGCRS["NAD83",DATUM["North American Datum 1983",ELLIPSOID["GRS 1980",6378137,298.257222101,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Geodesy."],AREA["North America - onshore and offshore: Canada - Alberta; British Columbia; Manitoba; New Brunswick; Newfoundland and Labrador; Northwest Territories; Nova Scotia; Nunavut; Ontario; Prince Edward Island; Quebec; Saskatchewan; Yukon. Puerto Rico. United States (USA) - Alabama; Alaska; Arizona; Arkansas; California; Colorado; Connecticut; Delaware; Florida; Georgia; Hawaii; Idaho; Illinois; Indiana; Iowa; Kansas; Kentucky; Louisiana; Maine; Maryland; Massachusetts; Michigan; Minnesota; Mississippi; Missouri; Montana; Nebraska; Nevada; New Hampshire; New Jersey; New Mexico; New York; North Carolina; North Dakota; Ohio; Oklahoma; Oregon; Pennsylvania; Rhode Island; South Carolina; South Dakota; Tennessee; Texas; Utah; Vermont; Virginia; Washington; West Virginia; Wisconsin; Wyoming. US Virgin Islands. British Virgin Islands."],BBOX[14.92,167.65,86.45,-40.73]],ID["EPSG",4269],REMARK["Longitude is POSITIVE EAST. The adjustment included connections to Greenland and Mexico but the system was not adopted there. For applications with an accuracy of better than 1m replaced by NAD83(HARN) in the US and PRVI and by NAD83(CSRS) in Canada."]]</wkt>
-          <proj4>+proj=longlat +datum=NAD83 +no_defs</proj4>
-          <srsid>3401</srsid>
-          <srid>4269</srid>
-          <authid>EPSG:4269</authid>
-          <description>NAD83</description>
+          <wkt>GEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Horizontal component of 3D system."],AREA["World."],BBOX[-90,-180,90,180]],ID["EPSG",4326]]</wkt>
+          <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+          <srsid>3452</srsid>
+          <srid>4326</srid>
+          <authid>EPSG:4326</authid>
+          <description>WGS 84</description>
           <projectionacronym>longlat</projectionacronym>
-          <ellipsoidacronym>EPSG:7019</ellipsoidacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
           <geographicflag>true</geographicflag>
         </spatialrefsys>
       </srs>
@@ -232,20 +232,20 @@
         <encoding></encoding>
         <crs>
           <spatialrefsys nativeFormat="Wkt">
-            <wkt>GEOGCRS["NAD83",DATUM["North American Datum 1983",ELLIPSOID["GRS 1980",6378137,298.257222101,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Geodesy."],AREA["North America - onshore and offshore: Canada - Alberta; British Columbia; Manitoba; New Brunswick; Newfoundland and Labrador; Northwest Territories; Nova Scotia; Nunavut; Ontario; Prince Edward Island; Quebec; Saskatchewan; Yukon. Puerto Rico. United States (USA) - Alabama; Alaska; Arizona; Arkansas; California; Colorado; Connecticut; Delaware; Florida; Georgia; Hawaii; Idaho; Illinois; Indiana; Iowa; Kansas; Kentucky; Louisiana; Maine; Maryland; Massachusetts; Michigan; Minnesota; Mississippi; Missouri; Montana; Nebraska; Nevada; New Hampshire; New Jersey; New Mexico; New York; North Carolina; North Dakota; Ohio; Oklahoma; Oregon; Pennsylvania; Rhode Island; South Carolina; South Dakota; Tennessee; Texas; Utah; Vermont; Virginia; Washington; West Virginia; Wisconsin; Wyoming. US Virgin Islands. British Virgin Islands."],BBOX[14.92,167.65,86.45,-40.73]],ID["EPSG",4269],REMARK["Longitude is POSITIVE EAST. The adjustment included connections to Greenland and Mexico but the system was not adopted there. For applications with an accuracy of better than 1m replaced by NAD83(HARN) in the US and PRVI and by NAD83(CSRS) in Canada."]]</wkt>
-            <proj4>+proj=longlat +datum=NAD83 +no_defs</proj4>
-            <srsid>3401</srsid>
-            <srid>4269</srid>
-            <authid>EPSG:4269</authid>
-            <description>NAD83</description>
+            <wkt>GEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Horizontal component of 3D system."],AREA["World."],BBOX[-90,-180,90,180]],ID["EPSG",4326]]</wkt>
+            <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+            <srsid>3452</srsid>
+            <srid>4326</srid>
+            <authid>EPSG:4326</authid>
+            <description>WGS 84</description>
             <projectionacronym>longlat</projectionacronym>
-            <ellipsoidacronym>EPSG:7019</ellipsoidacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
             <geographicflag>true</geographicflag>
           </spatialrefsys>
         </crs>
         <extent/>
       </resourceMetadata>
-      <provider encoding="UTF-8">ogr</provider>
+      <provider encoding="">postgres</provider>
       <vectorjoins/>
       <layerDependencies/>
       <dataDependencies/>
@@ -260,7 +260,7 @@
         <Searchable>1</Searchable>
         <Private>0</Private>
       </flags>
-      <temporal accumulate="0" durationField="" durationUnit="min" enabled="0" endExpression="" endField="" fixedDuration="0" limitMode="0" mode="0" startExpression="" startField="">
+      <temporal accumulate="0" durationField="" durationUnit="min" enabled="1" endExpression="" endField="time_end" fixedDuration="0" limitMode="0" mode="2" startExpression="" startField="time_start">
         <fixedRange>
           <start></start>
           <end></end>
@@ -283,7 +283,7 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleLine" enabled="1" id="{e97ec800-4b59-466b-ac37-cfa7318d2f80}" locked="0" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{1ccbbeba-9d3e-4590-aacf-9f352bf7b263}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
                 <Option name="capstyle" type="QString" value="square"/>
@@ -295,7 +295,7 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="bevel"/>
-                <Option name="line_color" type="QString" value="243,166,178,255,rgb:0.9529412,0.6509804,0.6980392,1"/>
+                <Option name="line_color" type="QString" value="196,60,57,255,rgb:0.7686275,0.2352941,0.2235294,1"/>
                 <Option name="line_style" type="QString" value="solid"/>
                 <Option name="line_width" type="QString" value="0.6"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
@@ -332,15 +332,15 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleFill" enabled="1" id="{67a3b591-3532-4339-831b-c0117bf34cd1}" locked="0" pass="0">
+            <layer class="SimpleFill" enabled="1" id="{f633bf0a-cabd-48c3-8907-9f8d0686e15e}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-                <Option name="color" type="QString" value="243,166,178,255,rgb:0.9529412,0.6509804,0.6980392,1"/>
+                <Option name="color" type="QString" value="196,60,57,255,rgb:0.7686275,0.2352941,0.2235294,1"/>
                 <Option name="joinstyle" type="QString" value="bevel"/>
                 <Option name="offset" type="QString" value="0,0"/>
                 <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
                 <Option name="offset_unit" type="QString" value="MM"/>
-                <Option name="outline_color" type="QString" value="174,119,127,255,rgb:0.6806592,0.4649729,0.4985885,1"/>
+                <Option name="outline_color" type="QString" value="140,43,41,255,rgb:0.5490196,0.1680323,0.1596704,1"/>
                 <Option name="outline_style" type="QString" value="solid"/>
                 <Option name="outline_width" type="QString" value="0.2"/>
                 <Option name="outline_width_unit" type="QString" value="MM"/>
@@ -365,18 +365,18 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleMarker" enabled="1" id="{2dd7389e-d93f-4df7-884e-083c26a18a12}" locked="0" pass="0">
+            <layer class="SimpleMarker" enabled="1" id="{85a216a7-07bb-48ab-8f76-46861bfc6c23}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="angle" type="QString" value="0"/>
                 <Option name="cap_style" type="QString" value="square"/>
-                <Option name="color" type="QString" value="243,166,178,255,rgb:0.9529412,0.6509804,0.6980392,1"/>
+                <Option name="color" type="QString" value="196,60,57,255,rgb:0.7686275,0.2352941,0.2235294,1"/>
                 <Option name="horizontal_anchor_point" type="QString" value="1"/>
                 <Option name="joinstyle" type="QString" value="bevel"/>
                 <Option name="name" type="QString" value="diamond"/>
                 <Option name="offset" type="QString" value="0,0"/>
                 <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
                 <Option name="offset_unit" type="QString" value="MM"/>
-                <Option name="outline_color" type="QString" value="174,119,127,255,rgb:0.6806592,0.4649729,0.4985885,1"/>
+                <Option name="outline_color" type="QString" value="140,43,41,255,rgb:0.5490196,0.1680323,0.1596704,1"/>
                 <Option name="outline_style" type="QString" value="solid"/>
                 <Option name="outline_width" type="QString" value="0.2"/>
                 <Option name="outline_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -408,7 +408,7 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleFill" enabled="1" id="{4f76efc8-3481-48f3-bb25-838c2b263db3}" locked="0" pass="0">
+            <layer class="SimpleFill" enabled="1" id="{3d4ea970-52d1-44a5-aa75-2c74f7a1279e}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
                 <Option name="color" type="QString" value="0,0,255,255,rgb:0,0,1,1"/>
@@ -461,84 +461,56 @@
       <referencedLayers/>
       <referencingLayers/>
       <fieldConfiguration>
-        <field configurationFlags="0" name="STATEFP">
+        <field configurationFlags="0" name="county_id">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="COUNTYFP">
+        <field configurationFlags="0" name="label">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="COUNTYNS">
+        <field configurationFlags="0" name="state_terr">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="GEOIDFQ">
+        <field configurationFlags="0" name="fips">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="GEOID">
+        <field configurationFlags="0" name="time_start">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="NAME">
+        <field configurationFlags="0" name="time_end">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="NAMELSAD">
+        <field configurationFlags="0" name="change">
           <editWidget type="">
             <config>
               <Option/>
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="STUSPS">
-          <editWidget type="">
-            <config>
-              <Option/>
-            </config>
-          </editWidget>
-        </field>
-        <field configurationFlags="0" name="STATE_NAME">
-          <editWidget type="">
-            <config>
-              <Option/>
-            </config>
-          </editWidget>
-        </field>
-        <field configurationFlags="0" name="LSAD">
-          <editWidget type="">
-            <config>
-              <Option/>
-            </config>
-          </editWidget>
-        </field>
-        <field configurationFlags="0" name="ALAND">
-          <editWidget type="">
-            <config>
-              <Option/>
-            </config>
-          </editWidget>
-        </field>
-        <field configurationFlags="0" name="AWATER">
+        <field configurationFlags="0" name="citation">
           <editWidget type="">
             <config>
               <Option/>
@@ -547,65 +519,47 @@
         </field>
       </fieldConfiguration>
       <aliases>
-        <alias field="STATEFP" index="0" name=""/>
-        <alias field="COUNTYFP" index="1" name=""/>
-        <alias field="COUNTYNS" index="2" name=""/>
-        <alias field="GEOIDFQ" index="3" name=""/>
-        <alias field="GEOID" index="4" name=""/>
-        <alias field="NAME" index="5" name=""/>
-        <alias field="NAMELSAD" index="6" name=""/>
-        <alias field="STUSPS" index="7" name=""/>
-        <alias field="STATE_NAME" index="8" name=""/>
-        <alias field="LSAD" index="9" name=""/>
-        <alias field="ALAND" index="10" name=""/>
-        <alias field="AWATER" index="11" name=""/>
+        <alias field="county_id" index="0" name=""/>
+        <alias field="label" index="1" name=""/>
+        <alias field="state_terr" index="2" name=""/>
+        <alias field="fips" index="3" name=""/>
+        <alias field="time_start" index="4" name=""/>
+        <alias field="time_end" index="5" name=""/>
+        <alias field="change" index="6" name=""/>
+        <alias field="citation" index="7" name=""/>
       </aliases>
       <defaults>
-        <default applyOnUpdate="0" expression="" field="STATEFP"/>
-        <default applyOnUpdate="0" expression="" field="COUNTYFP"/>
-        <default applyOnUpdate="0" expression="" field="COUNTYNS"/>
-        <default applyOnUpdate="0" expression="" field="GEOIDFQ"/>
-        <default applyOnUpdate="0" expression="" field="GEOID"/>
-        <default applyOnUpdate="0" expression="" field="NAME"/>
-        <default applyOnUpdate="0" expression="" field="NAMELSAD"/>
-        <default applyOnUpdate="0" expression="" field="STUSPS"/>
-        <default applyOnUpdate="0" expression="" field="STATE_NAME"/>
-        <default applyOnUpdate="0" expression="" field="LSAD"/>
-        <default applyOnUpdate="0" expression="" field="ALAND"/>
-        <default applyOnUpdate="0" expression="" field="AWATER"/>
+        <default applyOnUpdate="0" expression="" field="county_id"/>
+        <default applyOnUpdate="0" expression="" field="label"/>
+        <default applyOnUpdate="0" expression="" field="state_terr"/>
+        <default applyOnUpdate="0" expression="" field="fips"/>
+        <default applyOnUpdate="0" expression="" field="time_start"/>
+        <default applyOnUpdate="0" expression="" field="time_end"/>
+        <default applyOnUpdate="0" expression="" field="change"/>
+        <default applyOnUpdate="0" expression="" field="citation"/>
       </defaults>
       <constraints>
-        <constraint constraints="0" exp_strength="0" field="STATEFP" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="COUNTYFP" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="COUNTYNS" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="GEOIDFQ" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="GEOID" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="NAME" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="NAMELSAD" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="STUSPS" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="STATE_NAME" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="LSAD" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="ALAND" notnull_strength="0" unique_strength="0"/>
-        <constraint constraints="0" exp_strength="0" field="AWATER" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="3" exp_strength="0" field="county_id" notnull_strength="1" unique_strength="1"/>
+        <constraint constraints="0" exp_strength="0" field="label" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="state_terr" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="fips" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="time_start" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="time_end" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="change" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="citation" notnull_strength="0" unique_strength="0"/>
       </constraints>
       <constraintExpressions>
-        <constraint desc="" exp="" field="STATEFP"/>
-        <constraint desc="" exp="" field="COUNTYFP"/>
-        <constraint desc="" exp="" field="COUNTYNS"/>
-        <constraint desc="" exp="" field="GEOIDFQ"/>
-        <constraint desc="" exp="" field="GEOID"/>
-        <constraint desc="" exp="" field="NAME"/>
-        <constraint desc="" exp="" field="NAMELSAD"/>
-        <constraint desc="" exp="" field="STUSPS"/>
-        <constraint desc="" exp="" field="STATE_NAME"/>
-        <constraint desc="" exp="" field="LSAD"/>
-        <constraint desc="" exp="" field="ALAND"/>
-        <constraint desc="" exp="" field="AWATER"/>
+        <constraint desc="" exp="" field="county_id"/>
+        <constraint desc="" exp="" field="label"/>
+        <constraint desc="" exp="" field="state_terr"/>
+        <constraint desc="" exp="" field="fips"/>
+        <constraint desc="" exp="" field="time_start"/>
+        <constraint desc="" exp="" field="time_end"/>
+        <constraint desc="" exp="" field="change"/>
+        <constraint desc="" exp="" field="citation"/>
       </constraintExpressions>
       <expressionfields/>
-      <attributeactions>
-        <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
-      </attributeactions>
+      <attributeactions/>
       <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
         <columns/>
       </attributetableconfig>
@@ -643,7 +597,7 @@
         <ymax>85.05112877980660357</ymax>
       </wgs84extent>
       <id>OpenStreetMap_1e38a8a6_9149_4e9d_9470_d2db54061be4</id>
-      <datasource>type=xyz&amp;url=https://tile.openstreetmap.org/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0</datasource>
+      <datasource>crs=EPSG%3A3857&amp;format&amp;type=xyz&amp;url=https%3A%2F%2Ftile.openstreetmap.org%2F%7Bz%7D%2F%7Bx%7D%2F%7By%7D.png&amp;zmax=19&amp;zmin=0</datasource>
       <layername>OpenStreetMap</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
@@ -2148,8 +2102,8 @@
     <layer id="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d"/>
     <layer id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf"/>
     <layer id="Sections_f229951d_479b_4b82_8214_d409f0a149ef"/>
-    <layer id="Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec"/>
     <layer id="OpenStreetMap_1e38a8a6_9149_4e9d_9470_d2db54061be4"/>
+    <layer id="Counties__as_they_stood_that_year__50f5cb4a_ec9b_4d35_8fdb_1c7b18e837a0"/>
   </layerorder>
   <labelEngineSettings/>
   <properties name="properties">
@@ -2322,7 +2276,7 @@ def closeProject():
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="Counties__2023_Census_boundaries__d0120548_be9a_4fda_80b9_a2cdcd7ddeec" destinationLayerName="Counties (2023 Census boundaries)" destinationLayerProvider="ogr" destinationLayerSource="/vsizip//vsicurl/https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip/cb_2023_us_county_500k.shp">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d" destinationLayerName="Proposed links (waiting for review)" destinationLayerProvider="postgres" destinationLayerSource="dbname='lineage' host=localhost port=47119 user='lineage' key='link_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;proposed_links&quot; (geom)">
     <timeStampFields/>
   </ProjectGpsSettings>
 </qgis>
