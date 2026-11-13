@@ -1,0 +1,19 @@
+docker/counties.Dockerfile
+  s_111c4f7ff198f4::t_1152fd27dd5e9a 2,4-5,7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "256b186a97874eb22e1506f0a8b14af2d824b55c",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
