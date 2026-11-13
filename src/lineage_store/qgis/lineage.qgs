@@ -35,17 +35,17 @@
     <customproperties>
       <Option/>
     </customproperties>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d" legend_exp="" legend_split_behavior="0" name="Proposed links (waiting for review)" patch_size="-1,-1" providerKey="postgres" source="@CONNECTION@ key='link_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;proposed_links&quot; (geom)">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d" legend_exp="" legend_split_behavior="0" name="Proposed links (waiting for review)" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='link_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;proposed_links&quot; (geom)">
       <customproperties>
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" legend_exp="" legend_split_behavior="0" name="Removals (lines gone from a later sheet)" patch_size="-1,-1" providerKey="postgres" source="@CONNECTION@ key='removal_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;removals&quot; (geom)">
+    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" legend_exp="" legend_split_behavior="0" name="Removals (lines gone from a later sheet)" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='removal_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;removals&quot; (geom)">
       <customproperties>
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Sections_f229951d_479b_4b82_8214_d409f0a149ef" legend_exp="" legend_split_behavior="0" name="Sections" patch_size="-1,-1" providerKey="postgres" source="@CONNECTION@ key='row_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;sections&quot; (geom)">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Sections_f229951d_479b_4b82_8214_d409f0a149ef" legend_exp="" legend_split_behavior="0" name="Sections" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='row_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;sections&quot; (geom)">
       <customproperties>
         <Option/>
       </customproperties>
@@ -137,7 +137,7 @@
         <ymax>48.68647254536680435</ymax>
       </wgs84extent>
       <id>Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d</id>
-      <datasource>@CONNECTION@ key='link_id' checkPrimaryKeyUnicity='0' table="qgis"."proposed_links" (geom)</datasource>
+      <datasource>dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='link_id' checkPrimaryKeyUnicity='0' table="qgis"."proposed_links" (geom)</datasource>
       <layername>Proposed links (waiting for review)</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
@@ -513,7 +513,7 @@
         <ymax>48.7305727906597923</ymax>
       </wgs84extent>
       <id>Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf</id>
-      <datasource>@CONNECTION@ key='removal_id' checkPrimaryKeyUnicity='0' table="qgis"."removals" (geom)</datasource>
+      <datasource>dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='removal_id' checkPrimaryKeyUnicity='0' table="qgis"."removals" (geom)</datasource>
       <layername>Removals (lines gone from a later sheet)</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
@@ -878,7 +878,7 @@
         <ymax>49.02136428310575411</ymax>
       </wgs84extent>
       <id>Sections_f229951d_479b_4b82_8214_d409f0a149ef</id>
-      <datasource>@CONNECTION@ key='row_id' checkPrimaryKeyUnicity='0' table="qgis"."sections" (geom)</datasource>
+      <datasource>dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='row_id' checkPrimaryKeyUnicity='0' table="qgis"."sections" (geom)</datasource>
       <layername>Sections</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">

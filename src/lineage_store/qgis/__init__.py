@@ -1,8 +1,9 @@
 """A QGIS project and a default style for the `qgis` views, installed into the database so
 that opening Lineage in QGIS takes no setup.
 
-The project and style were made in QGIS 4.2 and templated: `@CONNECTION@` stands for the
-PostGIS connection, which differs per deployment and is filled in at install time.
+The project was made in QGIS 4.2. The file in the repo connects to the local Compose
+database (`DEV_CONNECTION`), so it opens as-is for development; `install` swaps in the
+connection for the deployment it is installing into.
 """
 
 from __future__ import annotations
@@ -27,8 +28,12 @@ def connection_string(host: str, port: int, dbname: str, user: str | None, passw
     return " ".join(parts)
 
 
+# What the repo's lineage.qgs points at: the Compose database (controlplane ports.md).
+DEV_CONNECTION = connection_string("localhost", 47119, "lineage", "lineage", "lineage")
+
+
 def project_qgz(connection: str) -> bytes:
-    qgs = resources.files(__package__).joinpath("lineage.qgs").read_text().replace("@CONNECTION@", connection)
+    qgs = resources.files(__package__).joinpath("lineage.qgs").read_text().replace(DEV_CONNECTION, connection)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr(f"{PROJECT_NAME}.qgs", qgs)

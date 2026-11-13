@@ -94,8 +94,9 @@ tick.
 `docker compose up` installs the project and the style. Elsewhere, run
 `lineage-store qgis install --host <db host as QGIS users reach it> --port <port>`; it
 leaves the user and password out unless given, so each person's own credentials apply.
-The project is made in QGIS 4.2 and kept in `src/lineage_store/qgis/`; to change it, edit
-it in QGIS, save it, and template the connection back to `@CONNECTION@`.
+The project is made in QGIS 4.2 and kept in `src/lineage_store/qgis/lineage.qgs`. That file
+connects to the Compose database, so you can open it straight from the repo, change it in
+QGIS and save it; `install` swaps in the real connection.
 
 The views, if you want them directly: `qgis.sections` (time fields `time_start` and
 `time_end`, key `row_id`), `qgis.removals`, `qgis.proposed_links`, `qgis.lines`,

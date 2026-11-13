@@ -6,7 +6,7 @@ import io
 import zipfile
 
 from lineage_store import cli
-from lineage_store.qgis import PROJECT_NAME, connection_string, project_qgz
+from lineage_store.qgis import DEV_CONNECTION, PROJECT_NAME, connection_string, project_qgz
 
 
 def test_connection_string():
@@ -16,7 +16,8 @@ def test_connection_string():
 
 def test_project_is_a_qgz_with_every_layer_connected():
     qgs = zipfile.ZipFile(io.BytesIO(project_qgz("dbname='x' host=h port=1"))).read(f"{PROJECT_NAME}.qgs").decode()
-    assert "@CONNECTION@" not in qgs
+    assert "host=localhost" not in qgs
+    assert qgs.count("dbname='x' host=h port=1") == 6     # each layer, in the layer tree and the layer list
     for view in ("sections", "removals", "proposed_links"):
         assert f'table=&quot;qgis&quot;.&quot;{view}&quot;' in qgs or f'table="qgis"."{view}"' in qgs
     assert 'startField="time_start"' in qgs and 'endField="time_end"' in qgs
@@ -35,3 +36,9 @@ def test_install_twice(database_url, sql, monkeypatch, capsys):
                          "WHERE f_table_schema = 'qgis' AND f_table_name = 'sections'").fetchall()
     assert [(s["stylename"], s["useasdefault"]) for s in styles] == [(PROJECT_NAME, True)]
     assert 'startField="time_start"' in styles[0]["qml"]
+
+
+def test_the_repo_file_opens_on_the_compose_database():
+    from importlib import resources
+    qgs = resources.files("lineage_store.qgis").joinpath("lineage.qgs").read_text()
+    assert qgs.count(DEV_CONNECTION) == 6
