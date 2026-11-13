@@ -20,8 +20,8 @@ ATTRIBUTES: dict[str, Attribute] = {a.key: a for a in [
     Attribute("name", "text", "one", ("line", "section", "station")),
     Attribute("owner", "text", "many", ("line", "section", "station")),
     Attribute("operator", "text", "one", ("line", "section", "station")),
-    # Reserved: no values, so no claims, until we agree what it distinguishes that `network`
-    # doesn't (natural vs manufactured gas, crude vs products). docs/model.md has the note.
+    # No allowed values yet, so every commodity claim is refused. Values come when we agree what
+    # it adds to `network` (natural vs manufactured gas, crude vs products); see docs/model.md.
     Attribute("commodity", "enum", "one", ("line", "section"), None, ()),
     Attribute("status", "enum", "one", ("line", "section", "station", "node", "edge"), None,
               ("proposed", "permitted", "under_construction", "operational", "maintenance", "decommissioned")),

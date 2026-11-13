@@ -19,7 +19,7 @@ def test_registry_matches_migration(sql):
         assert (tuple(r["enum_values"]) if r["enum_values"] is not None else None) == a.enum_values
 
 
-def test_commodity_is_reserved(api):
+def test_commodity_claims_are_refused(api):
     s = sheet(api["ann"], 1937, SHEET_1937)
     section, _ = trace(api["ann"], s, line(HOBBS, JAL), as_of=SHEET_1937)
     r = api["ann"].post("/bundles", {"citations": [{"ref": "c", "source": s}],

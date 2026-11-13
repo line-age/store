@@ -382,7 +382,7 @@ INSERT INTO store.attribute (key, value_type, cardinality, feature_kinds, networ
     ('name',           'text',     'one',  '{line,section,station}', NULL, NULL),
     ('owner',          'text',     'many', '{line,section,station}', NULL, NULL),
     ('operator',       'text',     'one',  '{line,section,station}', NULL, NULL),
-    -- reserved: no values, so no claims yet (docs/model.md, commodity)
+    -- no allowed values yet, so every commodity claim is refused (docs/model.md, commodity)
     ('commodity',      'enum',     'one',  '{line,section}', NULL, '{}'),
     ('status',         'enum',     'one',  '{line,section,station,node,edge}', NULL,
         '{proposed,permitted,under_construction,operational,maintenance,decommissioned}'),
