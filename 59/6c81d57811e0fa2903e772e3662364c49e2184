@@ -1,0 +1,19 @@
+src/lineage_store/qgis/lineage.qgs~
+  s_111c4f7ff198f4::t_cff22e136ca6dc 1-1630
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "596c81d57811e0fa2903e772e3662364c49e2184",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
