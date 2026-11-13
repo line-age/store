@@ -4,7 +4,3 @@ __pycache__/
 .omc/
 asterix_story_log.json
 db/schema.sql
-
-# QGIS writes these beside a saved project; install only uses lineage.qgs
-*.qgs~
-*_attachments.zip
