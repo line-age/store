@@ -39,6 +39,7 @@ def main(argv: list[str] | None = None) -> None:
     m.add_argument("role")
     m.add_argument("--github", required=True, help="the person's GitHub login")
     m.add_argument("--name", help="their name, if they have no agent yet")
+    m.add_argument("--email", help="their email, if they have no agent yet")
 
     q = sub.add_parser("qgis", help="QGIS project and style in the database").add_subparsers(dest="qcmd", required=True)
     qi = q.add_parser("install", help="install or replace the Lineage project and the default sections style")
@@ -88,8 +89,8 @@ def main(argv: list[str] | None = None) -> None:
             elif args.cmd == "role":
                 row = conn.execute("SELECT id FROM store.agent WHERE github_login = %s", (args.github,)).fetchone()
                 agent_id = row["id"] if row else conn.execute(
-                    "INSERT INTO store.agent (kind, name, github_login) VALUES ('person', %s, %s) RETURNING id",
-                    (args.name or args.github, args.github)).fetchone()["id"]
+                    "INSERT INTO store.agent (kind, name, github_login, email) VALUES ('person', %s, %s, %s) RETURNING id",
+                    (args.name or args.github, args.github, args.email)).fetchone()["id"]
                 conn.execute("INSERT INTO store.agent_role (role, agent_id) VALUES (%s, %s) "
                              "ON CONFLICT (role) DO UPDATE SET agent_id = EXCLUDED.agent_id", (args.role, agent_id))
                 print(f"role {args.role} -> agent {agent_id}")

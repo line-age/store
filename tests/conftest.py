@@ -57,7 +57,8 @@ def fake_github(request: httpx.Request) -> httpx.Response:
     if not token.startswith("gh-") or login not in MEMBERS:
         return httpx.Response(401)
     if request.url.path == "/user":
-        return httpx.Response(200, json={"login": login, "name": MEMBERS[login]})
+        return httpx.Response(200, json={"login": login, "name": MEMBERS[login],
+                                         "email": f"{login}@example.org" if login == "ann" else None})
     if request.url.path == f"/orgs/line-age/teams/team-store/memberships/{login}":
         return httpx.Response(200, json={"state": "active"}) if login in TEAM else httpx.Response(404)
     return httpx.Response(404)

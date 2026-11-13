@@ -122,9 +122,18 @@ def test_agent_conflict(api):
 def test_agent_name_follows_the_importer(api, sql):
     k = {"system": "test", "key": "tracer:renamed"}
     first = api["backport"].post("/agents", {"kind": "person", "name": "abc", "external_key": k})
-    again = api["backport"].post("/agents", {"kind": "person", "name": "Ann B. Cee", "external_key": k})
+    again = api["backport"].post("/agents", {"kind": "person", "name": "Ann B. Cee", "email": "abc@example.org",
+                                             "external_key": k})
     assert again["id"] == first["id"]
-    assert sql.execute("SELECT name FROM store.agent WHERE id = %s", (first["id"],)).fetchone()["name"] == "Ann B. Cee"
+    row = sql.execute("SELECT name, email FROM store.agent WHERE id = %s", (first["id"],)).fetchone()
+    assert row == {"name": "Ann B. Cee", "email": "abc@example.org"}
+
+
+def test_github_sign_in_keeps_a_public_email(api, sql):
+    for who in ("ann", "bob"):                      # ann shows an email on GitHub, bob doesn't
+        api[who].get("/me")
+    rows = sql.execute("SELECT github_login, email FROM store.agent WHERE github_login IN ('ann', 'bob')").fetchall()
+    assert {r["github_login"]: r["email"] for r in rows} == {"ann": "ann@example.org", "bob": None}
 
 
 def test_reads_and_their_refusals(api):

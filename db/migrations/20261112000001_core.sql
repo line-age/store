@@ -16,6 +16,7 @@ CREATE TABLE store.agent (
     kind         text NOT NULL CHECK (kind IN ('person', 'pipeline')),
     name         text NOT NULL,
     github_login text UNIQUE,
+    email        text,
     pipeline     text,                 -- pipelines: name and version, e.g. "stitch@a318e90"
     created_at   timestamptz NOT NULL DEFAULT now()
 );

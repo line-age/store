@@ -88,6 +88,7 @@ class Authenticator:
             raise HTTPException(401, "GitHub did not accept that token")
         login = user.json()["login"]
         name = user.json().get("name") or login
+        email = user.json().get("email")   # their public GitHub email, if they show one
         if not any(self._in_team(auth, team, login) for team in self.teams):
             raise HTTPException(403, f"{login} is not in any of: {', '.join(self.teams)}")
         with self.db.write(STORE_AGENT) as conn:
@@ -95,8 +96,10 @@ class Authenticator:
                 "SELECT id, kind, name FROM store.agent WHERE github_login = %s", (login,)).fetchone()
             if not row:
                 row = conn.execute(
-                    """INSERT INTO store.agent (kind, name, github_login) VALUES ('person', %s, %s)
-                       RETURNING id, kind, name""", (name, login)).fetchone()
+                    """INSERT INTO store.agent (kind, name, github_login, email) VALUES ('person', %s, %s, %s)
+                       RETURNING id, kind, name""", (name, login, email)).fetchone()
+            elif email:
+                conn.execute("UPDATE store.agent SET email = %s WHERE id = %s AND email IS NULL", (email, row["id"]))
         if row["kind"] != "person":
             raise HTTPException(403, f"{login} is registered as a pipeline")
         return Principal(row["id"], "person", row["name"])
