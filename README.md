@@ -79,10 +79,12 @@ OpenAPI docs are at `/docs` while it runs.
 
 No setup: in QGIS, **Project → Open From → PostgreSQL**, pick the connection, schema
 `qgis`, project **Lineage**. It opens with the sections on a time slider (1929 to 1998, a
-year a step) over OpenStreetMap. Removals still waiting for review are thick red lines,
+year a step) over OpenStreetMap. Removals still waiting for review are thick magenta lines,
 from the earliest date each could have happened; once a reviewer confirms which section a
 removal ended, it disappears, and that section ends instead. Proposed links and county
-lines are layers you can switch on. The county lines follow the slider: each year shows the counties as they
+lines are layers you can switch on. Click a section or removal with **Identify** to see the claims behind
+it: what was said, by whom, when it was valid, and the source and place it came from
+(the **Claims and sources** table, related to both layers). The county lines follow the slider: each year shows the counties as they
 stood then, so they match the old maps. Proposed
 ends are dashed; sections whose sources disagree on dates are purple. Allow the project's
 macro when QGIS asks: it puts the Temporal Controller in animated mode, which QGIS doesn't
@@ -108,7 +110,7 @@ connects to the Compose database, so you can open it straight from the repo, cha
 QGIS and save it; `install` swaps in the real connection.
 
 The views, if you want them directly: `qgis.sections` (time fields `time_start` and
-`time_end`, key `row_id`), `qgis.removals`, `qgis.proposed_links`, `qgis.lines`,
+`time_end`, key `row_id`), `qgis.removals`, `qgis.claims`, `qgis.proposed_links`, `qgis.lines`,
 `qgis.rejected_traces`.
 
 ## Tests
