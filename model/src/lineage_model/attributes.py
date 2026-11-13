@@ -21,7 +21,7 @@ ATTRIBUTES: dict[str, Attribute] = {a.key: a for a in [
     Attribute("owner", "text", "many", ("line", "section", "station")),
     Attribute("operator", "text", "one", ("line", "section", "station")),
     # Reserved: no values, so no claims, until we agree what it distinguishes that `network`
-    # doesn't (natural vs manufactured gas, crude vs products). Migration 6 has the note.
+    # doesn't (natural vs manufactured gas, crude vs products). docs/model.md has the note.
     Attribute("commodity", "enum", "one", ("line", "section"), None, ()),
     Attribute("status", "enum", "one", ("line", "section", "station", "node", "edge"), None,
               ("proposed", "permitted", "under_construction", "operational", "maintenance", "decommissioned")),

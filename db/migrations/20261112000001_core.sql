@@ -382,8 +382,8 @@ INSERT INTO store.attribute (key, value_type, cardinality, feature_kinds, networ
     ('name',           'text',     'one',  '{line,section,station}', NULL, NULL),
     ('owner',          'text',     'many', '{line,section,station}', NULL, NULL),
     ('operator',       'text',     'one',  '{line,section,station}', NULL, NULL),
-    ('commodity',      'enum',     'one',  '{line,section}', NULL,
-        '{natural_gas,manufactured_gas,crude_oil,refined_products,water,electricity}'),
+    -- reserved: no values, so no claims yet (docs/model.md, commodity)
+    ('commodity',      'enum',     'one',  '{line,section}', NULL, '{}'),
     ('status',         'enum',     'one',  '{line,section,station,node,edge}', NULL,
         '{proposed,permitted,under_construction,operational,maintenance,decommissioned}'),
     ('route',          'geometry', 'one',  '{section}', NULL, NULL),
