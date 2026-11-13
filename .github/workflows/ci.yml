@@ -1,6 +1,8 @@
 name: ci
 on:
-  push: {branches: [main]}
+  push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
 
 jobs:
@@ -29,9 +31,51 @@ jobs:
       - run: uv run ruff check .
       - run: uv run pytest -q
 
+  # Pull requests build the images; main and v* tags also publish them, public, to
+  # ghcr.io/line-age/store and ghcr.io/line-age/store-counties (amd64 and arm64).
   image:
+    needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - {name: store, dockerfile: Dockerfile,
+             description: "Lineage store: the API, admin CLI and database migrations"}
+          - {name: store-counties, dockerfile: docker/counties.Dockerfile,
+             description: "Lineage store: loads historical county boundaries into PostGIS"}
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t lineage-${{ github.event.repository.name }}:ci .
-      - run: docker build -f docker/counties.Dockerfile -t lineage-${{ github.event.repository.name }}-counties:ci .
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.description=${{ matrix.description }}
+            org.opencontainers.image.licenses=MIT
+      - if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
