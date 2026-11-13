@@ -51,6 +51,7 @@ def test_the_repo_file_opens_on_the_compose_database():
     assert "host=" not in qgs.replace(DEV_CONNECTION, "").replace(DEV_CONNECTION_NO_PASSWORD, "")
     assert "<DefaultViewExtent" in qgs and "<mapcanvas" in qgs     # opens on the US, not on 0,0
     assert 'checked="Qt::Unchecked" expanded="1" id="Counties__' in qgs     # county lines start off
+    assert 'checked="Qt::Checked" expanded="1" id="Removals__' in qgs                 # removals start on
     assert "&quot;qgis&quot;.&quot;counties&quot;" in qgs or '"qgis"."counties"' in qgs
     assert "tile.openstreetmap.org" in qgs
 

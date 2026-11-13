@@ -40,7 +40,7 @@
         <Option/>
       </customproperties>
     </layer-tree-layer>
-    <layer-tree-layer checked="Qt::Unchecked" expanded="1" id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" legend_exp="" legend_split_behavior="0" name="Removals (lines gone from a later sheet)" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' key='removal_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;removals&quot; (geom)">
+    <layer-tree-layer checked="Qt::Checked" expanded="1" id="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" legend_exp="" legend_split_behavior="0" name="Removals waiting for review" patch_size="-1,-1" providerKey="postgres" source="dbname='lineage' host=localhost port=47119 user='lineage' key='removal_id' checkPrimaryKeyUnicity='0' table=&quot;qgis&quot;.&quot;removals&quot; (geom)">
       <customproperties>
         <Option/>
       </customproperties>
@@ -110,9 +110,9 @@
         <legendlayerfile isInOverview="0" layerid="Proposed_links__waiting_for_review__2a736b05_e35d_443b_95f9_44fd322c0b9d" visible="0"/>
       </filegroup>
     </legendlayer>
-    <legendlayer checked="Qt::Unchecked" drawingOrder="-1" name="Removals (lines gone from a later sheet)" open="true" showFeatureCount="0">
+    <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Removals waiting for review" open="true" showFeatureCount="0">
       <filegroup hidden="false" open="true">
-        <legendlayerfile isInOverview="0" layerid="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf" visible="1"/>
       </filegroup>
     </legendlayer>
     <legendlayer checked="Qt::Checked" drawingOrder="-1" name="Sections" open="true" showFeatureCount="0">
@@ -1184,7 +1184,7 @@
       </wgs84extent>
       <id>Removals__lines_gone_from_a_later_sheet__a8cc1313_3030_4f6a_8eb8_9b10d94acfcf</id>
       <datasource>dbname='lineage' host=localhost port=47119 user='lineage' password='lineage' key='removal_id' checkPrimaryKeyUnicity='0' table="qgis"."removals" (geom)</datasource>
-      <layername>Removals (lines gone from a later sheet)</layername>
+      <layername>Removals waiting for review</layername>
       <srs>
         <spatialrefsys nativeFormat="Wkt">
           <wkt>GEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],MEMBER["World Geodetic System 1984 (G2296)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Horizontal component of 3D system."],AREA["World."],BBOX[-90,-180,90,180]],ID["EPSG",4326]]</wkt>
@@ -1239,7 +1239,7 @@
         <Searchable>1</Searchable>
         <Private>0</Private>
       </flags>
-      <temporal accumulate="0" durationField="" durationUnit="min" enabled="0" endExpression="" endField="time_end" fixedDuration="0" limitMode="0" mode="0" startExpression="" startField="">
+      <temporal accumulate="0" durationField="" durationUnit="min" enabled="1" endExpression="" endField="time_end" fixedDuration="0" limitMode="0" mode="2" startExpression="" startField="time_start">
         <fixedRange>
           <start></start>
           <end></end>
@@ -1387,10 +1387,10 @@
                 <Option name="type" type="QString" value="collection"/>
               </Option>
             </data_defined_properties>
-            <layer class="SimpleLine" enabled="1" id="{2b977ce2-3189-42fa-ac13-97e81c200fda}" locked="0" pass="0">
+            <layer class="SimpleLine" enabled="1" id="{6e258982-d76b-4f1e-b837-62b0f4089866}" locked="0" pass="0">
               <Option type="Map">
                 <Option name="align_dash_pattern" type="QString" value="0"/>
-                <Option name="capstyle" type="QString" value="square"/>
+                <Option name="capstyle" type="QString" value="round"/>
                 <Option name="customdash" type="QString" value="5;2"/>
                 <Option name="customdash_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
                 <Option name="customdash_unit" type="QString" value="MM"/>
@@ -1399,9 +1399,9 @@
                 <Option name="dash_pattern_offset_unit" type="QString" value="MM"/>
                 <Option name="draw_inside_polygon" type="QString" value="0"/>
                 <Option name="joinstyle" type="QString" value="bevel"/>
-                <Option name="line_color" type="QString" value="231,41,138,255,rgb:0.9058824,0.1607843,0.5411765,1"/>
-                <Option name="line_style" type="QString" value="dash"/>
-                <Option name="line_width" type="QString" value="0.6"/>
+                <Option name="line_color" type="QString" value="228,26,28,255,rgb:0.8941177,0.1019608,0.1098039,1"/>
+                <Option name="line_style" type="QString" value="solid"/>
+                <Option name="line_width" type="QString" value="1.2"/>
                 <Option name="line_width_unit" type="QString" value="MM"/>
                 <Option name="offset" type="QString" value="0"/>
                 <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -1463,7 +1463,14 @@
             </config>
           </editWidget>
         </field>
-        <field configurationFlags="0" name="existed_to">
+        <field configurationFlags="0" name="removed_between">
+          <editWidget type="">
+            <config>
+              <Option/>
+            </config>
+          </editWidget>
+        </field>
+        <field configurationFlags="0" name="time_start">
           <editWidget type="">
             <config>
               <Option/>
@@ -1487,25 +1494,29 @@
       </fieldConfiguration>
       <aliases>
         <alias field="removal_id" index="0" name=""/>
-        <alias field="existed_to" index="1" name=""/>
-        <alias field="time_end" index="2" name=""/>
-        <alias field="match_status" index="3" name=""/>
+        <alias field="removed_between" index="1" name=""/>
+        <alias field="time_start" index="2" name=""/>
+        <alias field="time_end" index="3" name=""/>
+        <alias field="match_status" index="4" name=""/>
       </aliases>
       <defaults>
         <default applyOnUpdate="0" expression="" field="removal_id"/>
-        <default applyOnUpdate="0" expression="" field="existed_to"/>
+        <default applyOnUpdate="0" expression="" field="removed_between"/>
+        <default applyOnUpdate="0" expression="" field="time_start"/>
         <default applyOnUpdate="0" expression="" field="time_end"/>
         <default applyOnUpdate="0" expression="" field="match_status"/>
       </defaults>
       <constraints>
         <constraint constraints="3" exp_strength="0" field="removal_id" notnull_strength="1" unique_strength="1"/>
-        <constraint constraints="0" exp_strength="0" field="existed_to" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="removed_between" notnull_strength="0" unique_strength="0"/>
+        <constraint constraints="0" exp_strength="0" field="time_start" notnull_strength="0" unique_strength="0"/>
         <constraint constraints="0" exp_strength="0" field="time_end" notnull_strength="0" unique_strength="0"/>
         <constraint constraints="0" exp_strength="0" field="match_status" notnull_strength="0" unique_strength="0"/>
       </constraints>
       <constraintExpressions>
         <constraint desc="" exp="" field="removal_id"/>
-        <constraint desc="" exp="" field="existed_to"/>
+        <constraint desc="" exp="" field="removed_between"/>
+        <constraint desc="" exp="" field="time_start"/>
         <constraint desc="" exp="" field="time_end"/>
         <constraint desc="" exp="" field="match_status"/>
       </constraintExpressions>
@@ -2220,7 +2231,7 @@ def closeProject():
       </spatialrefsys>
     </DefaultViewExtent>
   </ProjectViewSettings>
-  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" colorModel="Rgb" iccProfileId="attachment:///QGIS4-CIWlRk" projectStyleId="attachment:///SmcpAE_styles.db">
+  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" colorModel="Rgb" iccProfileId="attachment:///QGIS4-CIWlRk" projectStyleId="attachment:///NSgXrK_styles.db">
     <databases/>
   </ProjectStyleSettings>
   <ProjectTimeSettings cumulativeTemporalRange="0" frameRate="2" timeStep="1" timeStepUnit="y" totalMovieFrames="100">

@@ -109,10 +109,15 @@ def test_case2_shutdown_confirmed_and_pinned(api, sql):
 
     [r] = rows(sql, section)                      # the removal isn't drawn; its end is, proposed
     assert (r["end_status"], r["time_end"], r["existed_to"]) == ("proposed", dt.date(1960, 12, 31), "1955-06-30/1960")
-    assert sql.execute("SELECT match_status FROM qgis.removals WHERE removal_id = %s", (rm,)).fetchone()[
-        "match_status"] == "proposed"
+    shown = sql.execute("SELECT match_status, removed_between, time_start, time_end FROM qgis.removals "
+                        "WHERE removal_id = %s", (rm,)).fetchone()
+    # on the slider from the earliest it could have gone, and it never stops having happened
+    assert shown == {"match_status": "proposed", "removed_between": "1955-06-30/1960",
+                     "time_start": dt.date(1955, 6, 30), "time_end": None}
 
     api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
+    # resolved: the end date is the section's now, so the removal leaves the QGIS view
+    assert sql.execute("SELECT 1 FROM qgis.removals WHERE removal_id = %s", (rm,)).fetchone() is None
     [r] = rows(sql, section)
     assert (r["end_status"], r["time_end"]) == ("confirmed", dt.date(1960, 12, 31))
     # nothing was copied onto the section
