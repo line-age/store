@@ -30,10 +30,13 @@ def connection_string(host: str, port: int, dbname: str, user: str | None, passw
 
 # What the repo's lineage.qgs points at: the Compose database (controlplane ports.md).
 DEV_CONNECTION = connection_string("localhost", 47119, "lineage", "lineage", "lineage")
+# QGIS leaves the password out of the copy it keeps in the layer tree.
+DEV_CONNECTION_NO_PASSWORD = connection_string("localhost", 47119, "lineage", "lineage", None)
 
 
 def project_qgz(connection: str) -> bytes:
-    qgs = resources.files(__package__).joinpath("lineage.qgs").read_text().replace(DEV_CONNECTION, connection)
+    qgs = resources.files(__package__).joinpath("lineage.qgs").read_text()
+    qgs = qgs.replace(DEV_CONNECTION, connection).replace(DEV_CONNECTION_NO_PASSWORD, connection)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr(f"{PROJECT_NAME}.qgs", qgs)

@@ -79,7 +79,8 @@ OpenAPI docs are at `/docs` while it runs.
 
 No setup: in QGIS, **Project → Open From → PostgreSQL**, pick the connection, schema
 `qgis`, project **Lineage**. It opens with the sections on a time slider (1929 to 1998, a
-year a step), and the removals and proposed links as layers you can switch on. Proposed
+year a step) over OpenStreetMap, and the removals, proposed links and county lines (2023
+Census boundaries, read from census.gov) as layers you can switch on. Proposed
 ends are dashed; sections whose sources disagree on dates are purple. Allow the project's
 macro when QGIS asks: it puts the Temporal Controller in animated mode, which QGIS doesn't
 save in projects. Without it, click the animated button in the Temporal Controller.

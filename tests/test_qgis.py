@@ -6,7 +6,13 @@ import io
 import zipfile
 
 from lineage_store import cli
-from lineage_store.qgis import DEV_CONNECTION, PROJECT_NAME, connection_string, project_qgz
+from lineage_store.qgis import (
+    DEV_CONNECTION,
+    DEV_CONNECTION_NO_PASSWORD,
+    PROJECT_NAME,
+    connection_string,
+    project_qgz,
+)
 
 
 def test_connection_string():
@@ -41,5 +47,8 @@ def test_install_twice(database_url, sql, monkeypatch, capsys):
 def test_the_repo_file_opens_on_the_compose_database():
     from importlib import resources
     qgs = resources.files("lineage_store.qgis").joinpath("lineage.qgs").read_text()
-    assert qgs.count(DEV_CONNECTION) == 6
+    assert qgs.count(DEV_CONNECTION) == 3                   # the layers
+    assert "host=" not in qgs.replace(DEV_CONNECTION, "").replace(DEV_CONNECTION_NO_PASSWORD, "")
     assert "<DefaultViewExtent" in qgs and "<mapcanvas" in qgs     # opens on the US, not on 0,0
+    assert 'checked="Qt::Unchecked" expanded="1" id="Counties__' in qgs     # county lines start off
+    assert "tile.openstreetmap.org" in qgs
