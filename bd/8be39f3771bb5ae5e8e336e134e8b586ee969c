@@ -1,0 +1,25 @@
+db/migrations/20261112000001_core.sql
+  s_111c4f7ff198f4::t_4a49ffe03e1bc8 385
+docs/model.md
+  s_111c4f7ff198f4::t_e08d7e57fd42d8 203,214-216,252
+model/src/lineage_model/attributes.py
+  s_111c4f7ff198f4::t_b63797de95dd01 23-24
+tests/test_rules.py
+  s_111c4f7ff198f4::t_27bcbdd286d70b 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "bd8be39f3771bb5ae5e8e336e134e8b586ee969c",
+  "prompts": {},
+  "sessions": {
+    "s_111c4f7ff198f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "eb1e86d2-0b65-4658-8723-7a1f0ae8a2dd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Nick Marden <nmarden@avvo.com>"
+    }
+  }
+}
