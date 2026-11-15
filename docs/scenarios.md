@@ -387,7 +387,16 @@ table with no geometry:
 
 In QGIS you colour or label sections by line, and the extension still appears in 1936.
 `label` is the display-only field every feature has, filled from the line's accepted `name`
-claim; a renamed line keeps all its names, dated and cited, in `claims`. Until `7b20`'s
+claim by store's code (the name in force latest wins); a renamed line keeps all its names, dated
+and cited, in `claims`. A line with no accepted name has no label.
+
+A section is in at most one line (a partial unique index, answered as 409). A line is the
+same pipe through its life: when the Hobbs line is sold, that is a dated `owner` claim on
+the line, not a new membership. So if `4c1e` turns out to belong to another line, the old
+link was wrong: a person rejects it and confirms the new one in one bundle (`reviews`
+then `links`). A whole proposed line is confirmed the same way, one review per link; a
+section already in another line stays out of that bundle and keeps its proposal beside
+its membership until a person moves it. Until `7b20`'s
 link is confirmed, `7b20` is released with no line.
 
 ## Case 10: a parallel line

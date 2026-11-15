@@ -130,6 +130,16 @@ def apply_bundle(conn: Connection, who: Principal, b: Bundle) -> BundleResult:
         _remember(conn, c.external_key, "claim", rid)
         done(ref, rid, True)
 
+    if b.reviews:
+        _person(who)
+    for r in b.reviews:
+        row = conn.execute("SELECT relation FROM store.feature_link WHERE id = %s", (r.link,)).fetchone()
+        if not row:
+            raise HTTPException(404, f"no such link {r.link}")
+        if row["relation"] != "part_of":
+            raise HTTPException(422, "a bundle decides only part_of links; use POST /links/{id}/reviews")
+        review_link(conn, who, r.link, LinkReviewIn(verdict=r.verdict, note=r.note))
+
     for i, link in enumerate(b.links):
         ref = ref_of(link, "links", i)
         if (rid := _existing(conn, link.external_key, "link")):
@@ -166,7 +176,22 @@ def insert_claim(conn: Connection, who: Principal, c: ClaimIn, resolve) -> uuid.
     for cc in c.citations:
         conn.execute("INSERT INTO store.claim_citation (claim_id, citation_id, role, confidence) "
                      "VALUES (%s, %s, %s, %s)", (rid, resolve(cc.citation), cc.role, cc.confidence))
+    if c.attribute == "name":
+        relabel(conn, resolve(c.feature))
     return rid
+
+
+def relabel(conn: Connection, feature_id) -> None:
+    """A line's label is its accepted name (scenarios, case 9): the one in force latest, then
+    the one written last. Called whenever a name claim is written or decided. A line with no
+    accepted name has no label; any other feature is left alone."""
+    conn.execute(
+        """UPDATE store.feature f SET label = (
+               SELECT c.value_text FROM store.claim c
+               WHERE c.feature_id = f.id AND c.attribute_key = 'name' AND c.status = 'accepted'
+               ORDER BY coalesce(c.start_latest, c.start_earliest) DESC NULLS LAST, c.created_at DESC
+               LIMIT 1)
+           WHERE f.id = %s AND f.kind = 'line'""", (feature_id,))
 
 
 # Agents -------------------------------------------------------------------------------------
@@ -234,6 +259,8 @@ def review_claim(conn: Connection, who: Principal, claim_id: uuid.UUID, r: Claim
         replaced_by = insert_claim(conn, who, new, lambda x: uuid.UUID(x) if x else None)
     conn.execute("UPDATE store.claim SET status = %s WHERE id = %s",
                  ("accepted" if r.verdict == "accept" else "rejected", claim_id))
+    if claim["attribute_key"] == "name":
+        relabel(conn, claim["feature_id"])
     rid = conn.execute(
         "INSERT INTO store.review (claim_id, reviewer_id, verdict, replaced_by_claim_id, note) "
         "VALUES (%s, %s, %s, %s, %s) RETURNING id",
@@ -246,7 +273,10 @@ def review_link(conn: Connection, who: Principal, link_id: uuid.UUID, r: LinkRev
     link = conn.execute("SELECT * FROM store.feature_link WHERE id = %s FOR UPDATE", (link_id,)).fetchone()
     if not link:
         raise HTTPException(404, "no such link")
-    if link["status"] != "proposed":
+    # A confirmed membership may be rejected: a section belongs to one line for its whole
+    # life, so taking it out or moving it says the membership was wrong (scenarios, case 9).
+    correction = link["relation"] == "part_of" and link["status"] == "confirmed" and r.verdict == "reject"
+    if link["status"] != "proposed" and not correction:
         raise HTTPException(409, f"that link is already {link['status']}")
     out: dict[str, Any] = {}
 
