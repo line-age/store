@@ -74,6 +74,10 @@ Every write names an agent, or the database refuses it.
   (`org/team-slug`, comma-separated); their agent is created on first sight, matched by
   GitHub login. To add someone before they sign in, or fix their name or email:
   `docker compose exec api lineage-store agent add --github <login> --name "<name>" --email <email>`.
+- **No token** is the local person, "Local developer", made on first use. This is for
+  development while there are no users: a local Studio reads and decides with no token.
+  Never expose a store like this beyond your own machine; person sign-in replaces it
+  before any deployment.
 - **QGIS against PostGIS directly**: give each person a database role, and
   `docker compose exec api lineage-store role map <role> --github <login>`.
 
@@ -81,10 +85,10 @@ Every write names an agent, or the database refuses it.
 
 | | |
 | --- | --- |
-| `POST /bundles` | sources, citations, features, claims and links in one transaction, with local refs and optional external keys |
+| `POST /bundles` | sources, citations, features, claims, `reviews` (a person's decisions on existing `part_of` links) and links in one transaction, with local refs and optional external keys |
 | `POST /agents` | find or create an agent (importers) |
 | `POST /claims/{id}/reviews` | accept, reject, or correct with a replacement claim |
-| `POST /links/{id}/reviews` | confirm or reject; confirming `overlaps` splits the section |
+| `POST /links/{id}/reviews` | confirm or reject; confirming `overlaps` splits the section; a confirmed `part_of` may be rejected (a correction) |
 | `POST /citation-requests`, `POST /citation-requests/next`, `POST /citation-requests/{id}/complete` | Ask AI and bulk requests, and `cite`'s queue |
 | `GET /sections` | GeoJSON from `qgis.sections`, by bbox, date and network |
 | `GET /features/{id}` | a feature with its claims, citations, reviews, links and dates |

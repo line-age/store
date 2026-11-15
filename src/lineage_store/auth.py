@@ -8,6 +8,10 @@ Every caller is an agent (docs/model.md, `AGENT`):
 - **People** send a GitHub token (`review` does the OAuth in the browser). The store asks
   GitHub who it is and whether they are in one of `LINEAGE_GITHUB_TEAMS` (controlplane
   L-0012), and finds or creates their person agent by GitHub login.
+- **No token** is the local person, "Local developer", a person agent made on first use.
+  This is for development, while there are no users: Studio reads and decides without
+  any token. Before the store runs anywhere but a developer's machine, person sign-in
+  replaces it. A pipeline still sends its token, so what it writes stays a proposal.
 
 People writing straight to PostGIS from QGIS are named by `store.agent_role` instead; that
 happens in the database, not here.
@@ -27,6 +31,8 @@ from fastapi import HTTPException, Request
 from .db import STORE_AGENT, Database
 
 TOKEN_PREFIX = "lgt_"
+LOCAL_PERSON = uuid.UUID("00000000-0000-0000-0000-000000000002")
+LOCAL_PERSON_NAME = "Local developer"
 
 
 @dataclass(frozen=True)
@@ -55,9 +61,12 @@ class Authenticator:
         self.cache_seconds = cache_seconds
         self.http = http or httpx.Client(timeout=10)
         self._cache: dict[str, tuple[float, Principal]] = {}
+        self._local_made = False
 
     def __call__(self, request: Request) -> Principal:
         header = request.headers.get("authorization", "")
+        if not header:
+            return self._local()
         if not header.lower().startswith("bearer "):
             raise HTTPException(401, "send a bearer token: a pipeline token or a GitHub token")
         token = header[7:].strip()
@@ -68,6 +77,14 @@ class Authenticator:
         principal = self._pipeline(key) if token.startswith(TOKEN_PREFIX) else self._person(token)
         self._cache[key] = (time.monotonic() + self.cache_seconds, principal)
         return principal
+
+    def _local(self) -> Principal:
+        if not self._local_made:
+            with self.db.write(STORE_AGENT) as conn:
+                conn.execute("INSERT INTO store.agent (id, kind, name) VALUES (%s, 'person', %s) "
+                             "ON CONFLICT (id) DO NOTHING", (LOCAL_PERSON, LOCAL_PERSON_NAME))
+            self._local_made = True
+        return Principal(LOCAL_PERSON, "person", LOCAL_PERSON_NAME)
 
     def _pipeline(self, key: str) -> Principal:
         with self.db.read() as conn:
