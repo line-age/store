@@ -127,11 +127,22 @@ class LinkIn(_Row):
     model_config = {"populate_by_name": True}
 
 
+class BundleReviewIn(BaseModel):
+    """A person's decision on an existing `part_of` link, made in a bundle so that a move
+    (reject the old membership, confirm the new) or a whole proposed line is one call."""
+
+    link: uuid.UUID
+    verdict: Literal["confirm", "reject"]
+    note: str | None = None
+
+
 class Bundle(BaseModel):
     sources: list[SourceIn] = []
     citations: list[CitationIn] = []
     features: list[FeatureIn] = []
     claims: list[ClaimIn] = []
+    # Applied after the claims and before the links, in the same transaction; a person only.
+    reviews: list[BundleReviewIn] = []
     links: list[LinkIn] = []
 
 
