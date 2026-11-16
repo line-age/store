@@ -178,7 +178,7 @@ erDiagram
 | `same_as` | section | section | the same pipe, traced twice |
 | `overlaps` | section | section | a removal covers part of this section |
 | `split_into` | section | section | this section was cut into these pieces |
-| `part_of` | section | line | this section belongs to this line; at most one confirmed per section (see below) |
+| `part_of` | section | line | this section belongs to this line |
 | `parallel_to` | section | section | a second pipe beside this one, not the same pipe |
 
 Not drawn:
@@ -192,13 +192,7 @@ Not drawn:
   for importers) and **`AGENT_ROLE`** (a database role used from QGIS -> its person).
 - **Rules the database enforces:** a claim's value fits its attribute; a claim has a
   citation by commit time (I-0002); claims and links are never edited, only their status
-  moves; a link's ends are the feature kinds its relation allows; a section has at most
-  one confirmed `part_of`; a line's `label` is its accepted `name`.
-- **Membership is identity, not time** (settled 2026-11-15, scenarios case 9). A line is
-  the same pipe through its life; a sale or absorption into another system is a dated
-  `owner` or `operator` claim, not a new membership. So moving a section to another line,
-  or taking it out of one, is a correction: a person rejects the confirmed `part_of` and,
-  for a move, confirms the new one, in one bundle.
+  moves; a link's ends are the feature kinds its relation allows.
 
 ## Attributes (starting set)
 
@@ -266,6 +260,10 @@ because their intervals don't overlap.
 
 ## Open
 
+- **Section to line membership** is a `part_of` link (settled in scenarios, case 9):
+  proposed and confirmed like any other link, optionally cited. A section that moves to
+  another line (a sale, absorption into another system) gets a new link; whether links
+  need validity dates for that is still open.
 - **Directionality through junctions** (flow from edge A may continue to B but not C). Not
   modeled yet; probably a turn table on `NODE`.
 - **Nodes and I-0007.** Nodes are recorded only where a source shows one. An edge whose ends
