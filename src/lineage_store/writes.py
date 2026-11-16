@@ -130,16 +130,6 @@ def apply_bundle(conn: Connection, who: Principal, b: Bundle) -> BundleResult:
         _remember(conn, c.external_key, "claim", rid)
         done(ref, rid, True)
 
-    if b.reviews:
-        _person(who)
-    for r in b.reviews:
-        row = conn.execute("SELECT relation FROM store.feature_link WHERE id = %s", (r.link,)).fetchone()
-        if not row:
-            raise HTTPException(404, f"no such link {r.link}")
-        if row["relation"] != "part_of":
-            raise HTTPException(422, "a bundle decides only part_of links; use POST /links/{id}/reviews")
-        review_link(conn, who, r.link, LinkReviewIn(verdict=r.verdict, note=r.note))
-
     for i, link in enumerate(b.links):
         ref = ref_of(link, "links", i)
         if (rid := _existing(conn, link.external_key, "link")):
@@ -256,10 +246,7 @@ def review_link(conn: Connection, who: Principal, link_id: uuid.UUID, r: LinkRev
     link = conn.execute("SELECT * FROM store.feature_link WHERE id = %s FOR UPDATE", (link_id,)).fetchone()
     if not link:
         raise HTTPException(404, "no such link")
-    # A confirmed membership may be rejected: a section belongs to one line for its whole
-    # life, so taking it out or moving it says the membership was wrong (scenarios, case 9).
-    correction = link["relation"] == "part_of" and link["status"] == "confirmed" and r.verdict == "reject"
-    if link["status"] != "proposed" and not correction:
+    if link["status"] != "proposed":
         raise HTTPException(409, f"that link is already {link['status']}")
     out: dict[str, Any] = {}
 

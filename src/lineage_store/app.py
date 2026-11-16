@@ -55,12 +55,6 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
     async def _rule(_, exc):  # a rule the database enforces (triggers)
         return JSONResponse(status_code=422, content={"detail": exc.diag.message_primary})
 
-    @app.exception_handler(psycopg.errors.UniqueViolation)
-    async def _unique(_, exc):
-        if exc.diag.constraint_name == "feature_link_one_line":
-            return JSONResponse(status_code=409, content={"detail": "that section is already in a pipeline"})
-        return JSONResponse(status_code=422, content={"detail": exc.diag.message_primary})
-
     @app.exception_handler(psycopg.errors.IntegrityError)
     async def _integrity(_, exc):
         return JSONResponse(status_code=422, content={"detail": exc.diag.message_primary})

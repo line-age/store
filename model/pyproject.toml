@@ -1,6 +1,6 @@
 [project]
 name = "lineage-model"
-version = "0.2.0"
+version = "0.1.0"
 description = "The Lineage store model: attribute registry, enums, dates and API shapes"
 requires-python = ">=3.14"
 dependencies = ["pydantic>=2.7"]

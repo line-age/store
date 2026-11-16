@@ -120,7 +120,7 @@ def test_github_login_and_team_gate(api, client):
     assert me["kind"] == "person" and me["name"] == "Ann Example"
     assert client.get("/me", headers={"Authorization": "Bearer gh-eve"}).status_code == 403
     assert client.get("/me", headers={"Authorization": "Bearer lgt_nope"}).status_code == 401
-    assert client.get("/me").json()["name"] == "Local developer"    # no token: test_lines
+    assert client.get("/me").status_code == 401
 
 
 def test_external_keys_make_bundles_idempotent(api):
