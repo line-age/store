@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, Response
 from lineage_model import (
     AgentIn,
@@ -41,6 +42,8 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
         db.close()
 
     app = FastAPI(title="Lineage store", version="0.1.0", lifespan=lifespan)
+    # A network's list is several megabytes of JSON; compressed it is a fraction of that.
+    app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=4)
 
     def db() -> Database:
         return state["db"]
@@ -125,6 +128,17 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
         with d.read() as conn:
             return reads.sections(conn, box, at, network, limit)
 
+    @app.get("/features")
+    def get_features(w: Who, d: Db, ids: Annotated[str, Query(description="Comma-separated feature ids")]):
+        try:
+            wanted = [uuid.UUID(x) for x in ids.split(",") if x.strip()]
+        except ValueError:
+            raise HTTPException(422, "ids are feature ids, comma-separated") from None
+        if not 1 <= len(wanted) <= 200:
+            raise HTTPException(422, "ask for 1 to 200 features at once")
+        with d.read() as conn:
+            return reads.features(conn, wanted)
+
     @app.get("/features/{feature_id}")
     def get_feature(feature_id: uuid.UUID, w: Who, d: Db):
         with d.read() as conn:
@@ -138,9 +152,10 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
 
     @app.get("/links")
     def get_links(w: Who, d: Db, status: Literal["proposed", "confirmed", "rejected"] | None = None,
-                  relation: str | None = None, limit: int = Query(1000, le=10000)):
+                  relation: str | None = None, network: str | None = None,
+                  limit: int = Query(1000, le=10000)):
         with d.read() as conn:
-            return reads.links(conn, status, relation, limit)
+            return reads.links(conn, status, relation, limit, network)
 
     @app.get("/citation-requests")
     def get_requests(w: Who, d: Db, status: str | None = None, limit: int = Query(100, le=1000)):
