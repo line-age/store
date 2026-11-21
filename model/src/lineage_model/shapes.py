@@ -203,8 +203,10 @@ class CitationRequestDone(BaseModel):
 
 
 # Reads -----------------------------------------------------------------------------------
-# What the read endpoints return beyond what each row of the database holds. Extra fields
-# are allowed: these describe what a client may rely on, not everything sent.
+# What the read endpoints return beyond what each row of the database holds: the documented
+# contract a client may rely on, which the tests validate every response against. The API
+# builds its responses as plain dicts and does not use these. Extra fields are allowed:
+# they describe what a client may rely on, not everything sent.
 
 
 class AcceptedClaim(BaseModel):
@@ -243,7 +245,8 @@ class SectionRow(BaseModel, extra="allow"):
     # the year of the sheet that no longer shows it, once a person confirmed its removal
     gone_year: int | None = None
     created_at: dt.datetime | None = None
-    # where a proposed cut makes each row of the section a part of it: the route as traced
+    # the route as traced where a proposed cut makes each row of the section a part of it;
+    # null on a section no cut touches
     whole_route: dict[str, Any] | None = None
 
 

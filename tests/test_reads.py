@@ -127,7 +127,7 @@ def test_cut_piece_rows(api):
     # every row of the section carries its route as traced, which no row's geometry is
     assert whole["whole_route"]["coordinates"] == [list(HOBBS), list(JAL)]
     assert piece["whole_route"] == whole["whole_route"]
-    assert "whole_route" not in props(api["ann"], journal_section(api))
+    assert props(api["ann"], journal_section(api))["whole_route"] is None
     assert whole["accepted"] == piece["accepted"] and piece["section_id"] == section
 
 
@@ -202,7 +202,7 @@ def test_removal_without_route_cuts_nothing(api, sql):
                     "citations": [{"citation": "c", "role": "map_omits"}]}],
         "links": [{"from": "rm", "to": section, "relation": "overlaps", "score": 0.9}]})
     [r] = row(api["ann"], section)
-    assert r["properties"].get("whole_route") is None
+    assert r["properties"]["whole_route"] is None
     assert len(sql.execute("SELECT 1 FROM qgis.sections WHERE section_id = %s", (section,)).fetchall()) == 1
 
 

@@ -15,9 +15,7 @@ def _feature_collection(rows: list[dict]) -> dict:
     feats = []
     for r in rows:
         geom = json.loads(r.pop("geometry")) if r.get("geometry") else None
-        feats.append({"type": "Feature", "id": str(r["row_id"]), "geometry": geom,
-                      "properties": {k: (str(v) if isinstance(v, (uuid.UUID, dt.date)) else v)
-                                     for k, v in r.items()}})
+        feats.append({"type": "Feature", "id": str(r["row_id"]), "geometry": geom, "properties": r})
     return {"type": "FeatureCollection", "features": feats}
 
 
@@ -37,17 +35,11 @@ def sections(conn: Connection, bbox: tuple[float, float, float, float] | None, a
            "time_start, time_end, end_status, date_conflict, line_id, diameter, has_candidates FROM qgis.sections"
            + (" WHERE " + " AND ".join(where) if where else "") + " ORDER BY row_id LIMIT %s")
     rows = conn.execute(sql, [*args, limit]).fetchall()
+    # every drawn section is a feature, so each row has its summary
     about = section_summaries(conn, list({r["section_id"] for r in rows}))
     for r in rows:
-        extra = dict(about.get(r["section_id"], _NO_SUMMARY))
-        if extra["whole_route"] is None:
-            del extra["whole_route"]      # only where a proposed cut makes rows parts of the route
-        r.update(extra)
+        r.update(about[r["section_id"]])
     return _feature_collection(rows)
-
-
-_NO_SUMMARY = {"accepted": {}, "candidates": {}, "shown_years": [], "gone_year": None, "created_at": None,
-               "whole_route": None}
 
 
 def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID, dict]:
@@ -113,7 +105,8 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
            ),
            shown AS (
                SELECT r.section_id,
-                      array_agg(DISTINCT substring(s.as_of_edtf FROM '[0-9]{4}')::int) AS years
+                      array_agg(DISTINCT substring(s.as_of_edtf FROM '[0-9]{4}')::int
+                                ORDER BY substring(s.as_of_edtf FROM '[0-9]{4}')::int) AS years
                FROM route r
                JOIN store.claim_citation cc ON cc.claim_id = r.claim_id AND cc.role = 'map_shows'
                JOIN store.citation ci ON ci.id = cc.citation_id
@@ -162,13 +155,7 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
         # Never prepared: after a few runs Postgres would switch to a generic plan, which
         # cannot see how many ids there are and took 250 ms instead of 30 for 500 ids.
         {"ids": ids}, prepare=False).fetchall()
-    out: dict[uuid.UUID, dict] = {}
-    for r in rows:
-        sid = r.pop("section_id")
-        r["shown_years"] = sorted(r["shown_years"])
-        r["created_at"] = r["created_at"].isoformat() if r["created_at"] else None
-        out[sid] = r
-    return out
+    return {r.pop("section_id"): r for r in rows}
 
 
 def feature(conn: Connection, feature_id: uuid.UUID) -> dict:
@@ -260,7 +247,7 @@ def missing(conn: Connection, attribute: str, network: str | None, limit: int) -
 
 
 def links(conn: Connection, status: str | None, relation: str | None, limit: int,
-          network: str | None = None) -> list[dict]:
+          network: str | None) -> list[dict]:
     """Links, oldest first. With `network`, only those with a feature of that network at
     either end. Each names who asserted it and what kind of agent that is, so a client can
     show a tool's name and never a person's."""
