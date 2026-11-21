@@ -243,3 +243,43 @@ def test_views_are_the_functions_over_every_section(api, sql):
     one = sql.execute("SELECT * FROM store.section_dates_for(ARRAY[%s::uuid])", (section,)).fetchall()
     assert one == sql.execute("SELECT * FROM store.section_dates WHERE section_id = %s", (section,)).fetchall()
     assert str(one[0]["time_end"]) == "1960-12-31"
+
+
+def test_record_answers_for_studio(api, tmp_path):
+    """Records invented answers for Studio's list-versus-detail test
+    (studio frontend/src/test/store-recorded.json). Runs only when asked:
+    STUDIO_FIXTURE_OUT=<path> uv run pytest tests/test_reads.py -k record"""
+    import json
+    import os
+
+    out = os.environ.get("STUDIO_FIXTURE_OUT")
+    if not out:
+        import pytest
+        pytest.skip("set STUDIO_FIXTURE_OUT to record")
+    net = "oil"   # a network no other test writes to
+    ann, cite = api["ann"], api["cite"]
+    s37 = sheet(ann, 1937, SHEET_1937)
+    # A: a diameter accepted, a larger one a tool found, and an owner on the section.
+    a, _ = trace(ann, s37, line((-80.0, 35.0), (-80.1, 35.2)), as_of=SHEET_1937, network=net)
+    inches(ann, a, 10, by("1937"))
+    inches(cite, a, 12, by("1950"))
+    # B: ended, a person matched the line traced as gone to it.
+    b, _ = trace(ann, s37, line((-81.0, 35.0), (-81.1, 35.2)), as_of=SHEET_1937, network=net)
+    _, link = removal(ann, line((-81.0, 35.0), (-81.1, 35.2)), b)
+    api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
+    # C: a cut proposed along part of it.
+    c, _ = trace(ann, s37, line((-82.0, 35.0), (-82.1, 35.4)), as_of=SHEET_1937, network=net)
+    removal(ann, line((-82.0, 35.2), (-82.1, 35.4)), c, relation="overlaps", score=0.8)
+    # D: a second edition shows it first.
+    trace(ann, sheet(ann, 1955, "1955-06-30"), line((-83.0, 35.0), (-83.1, 35.2)),
+          as_of="1955-06-30", network=net)
+    rows = ann.get("/sections", network=net, limit=10000)
+    links = [x for rel in ("same_as", "overlaps", "part_of")
+             for x in ann.get("/links", network=net, relation=rel, limit=10000)]
+    ids = sorted({f["properties"]["section_id"] for f in rows["features"]})
+    features = ann.get("/features", ids=",".join(ids))
+    others = sorted({x["from_feature_id"] for x in links} - set(ids))
+    removals = ann.get("/features", ids=",".join(others)) if others else []
+    with open(out, "w") as f:
+        json.dump({"rows": rows, "links": links, "features": features, "removals": removals},
+                  f, indent=1, sort_keys=True)
