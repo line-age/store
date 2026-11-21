@@ -66,6 +66,15 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
     rows = conn.execute(
         """WITH ids AS (SELECT DISTINCT unnest(%(ids)s::uuid[]) AS id),
            scope AS (SELECT * FROM store.claim_scope_for(%(ids)s::uuid[])),
+           -- the current route of each id, as store.section_route takes it, looked up per id:
+           -- the view sorts every route in the network before it can be filtered
+           route AS (
+               SELECT ids.id AS section_id, r.claim_id, r.geom
+               FROM ids CROSS JOIN LATERAL (
+                   SELECT c.id AS claim_id, c.value_geom AS geom FROM store.claim c
+                   WHERE c.feature_id = ids.id AND c.attribute_key = 'route' AND c.status = 'accepted'
+                   ORDER BY c.created_at DESC, c.id DESC LIMIT 1) r
+           ),
            facts AS (
                SELECT sc.section_id, c.attribute_key AS key, c.created_at, c.id,
                       json_build_object(
@@ -102,7 +111,7 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
            shown AS (
                SELECT r.section_id,
                       array_agg(DISTINCT substring(s.as_of_edtf FROM '[0-9]{4}')::int) AS years
-               FROM ids JOIN store.section_route r ON r.section_id = ids.id
+               FROM route r
                JOIN store.claim_citation cc ON cc.claim_id = r.claim_id AND cc.role = 'map_shows'
                JOIN store.citation ci ON ci.id = cc.citation_id
                JOIN store.source s ON s.id = ci.source_id
@@ -112,20 +121,29 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
            gone AS (   -- a removal a person linked to the section: the sheet that leaves it out
                SELECT sc.section_id, min(substring(s.as_of_edtf FROM '[0-9]{4}')::int) AS year
                FROM scope sc
-               JOIN store.removal rm ON rm.feature_id = sc.feature_id AND sc.feature_id <> sc.section_id
-               JOIN store.claim c ON c.feature_id = rm.feature_id AND c.attribute_key = 'status'
+               JOIN store.claim c ON c.feature_id = sc.feature_id AND c.attribute_key = 'status'
                    AND c.status = 'accepted'
                JOIN store.claim_citation cc ON cc.claim_id = c.id AND cc.role = 'map_omits'
                JOIN store.citation ci ON ci.id = cc.citation_id
                JOIN store.source s ON s.id = ci.source_id
-               WHERE s.kind = 'map_sheet' AND s.as_of_edtf ~ '[0-9]{4}'
+               WHERE sc.feature_id <> sc.section_id
+                 AND s.kind = 'map_sheet' AND s.as_of_edtf ~ '[0-9]{4}'
+                 AND EXISTS (   -- the feature is a removal (store.removal)
+                     SELECT 1 FROM store.claim d
+                     JOIN store.claim_citation dc ON dc.claim_id = d.id AND dc.role = 'map_omits'
+                     WHERE d.feature_id = sc.feature_id AND d.attribute_key = 'status'
+                       AND d.value_text = 'decommissioned')
                GROUP BY sc.section_id
            ),
            cut AS (    -- a proposed cut: the drawn row is the route without it
                SELECT DISTINCT l.to_feature_id AS section_id
                FROM ids JOIN store.feature_link l ON l.to_feature_id = ids.id
-               JOIN store.removal rm ON rm.feature_id = l.from_feature_id AND rm.standing
                WHERE l.relation = 'overlaps' AND l.status = 'proposed'
+                 AND EXISTS (   -- a standing removal (store.removal)
+                     SELECT 1 FROM store.claim d
+                     JOIN store.claim_citation dc ON dc.claim_id = d.id AND dc.role = 'map_omits'
+                     WHERE d.feature_id = l.from_feature_id AND d.attribute_key = 'status'
+                       AND d.value_text = 'decommissioned' AND d.status = 'accepted')
            )
            SELECT ids.id AS section_id, f.created_at,
                   coalesce(a.accepted, '{}') AS accepted, coalesce(k.candidates, '{}') AS candidates,
@@ -137,8 +155,10 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
            LEFT JOIN shown sh ON sh.section_id = ids.id
            LEFT JOIN gone g ON g.section_id = ids.id
            LEFT JOIN cut ON cut.section_id = ids.id
-           LEFT JOIN store.section_route r ON r.section_id = cut.section_id""",
-        {"ids": ids}).fetchall()
+           LEFT JOIN route r ON r.section_id = cut.section_id""",
+        # Never prepared: after a few runs Postgres would switch to a generic plan, which
+        # cannot see how many ids there are and took 250 ms instead of 30 for 500 ids.
+        {"ids": ids}, prepare=False).fetchall()
     out = {}
     for r in rows:
         sid = r.pop("section_id")
