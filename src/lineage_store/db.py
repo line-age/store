@@ -20,8 +20,11 @@ class Database:
 
     @contextmanager
     def read(self):
+        """A read-only transaction on one snapshot, so a read that takes several statements
+        (a row and its summary, a claim and its reviews) never sees a commit land between
+        them. Read-only transactions never fail to serialize, so nothing needs retrying."""
         with self.pool.connection() as conn, conn.transaction():
-            conn.execute("SET TRANSACTION READ ONLY")
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             yield conn
 
     @contextmanager
