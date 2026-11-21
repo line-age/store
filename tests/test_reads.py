@@ -204,3 +204,42 @@ def test_removal_without_route_cuts_nothing(api, sql):
     [r] = row(api["ann"], section)
     assert r["properties"].get("whole_route") is None
     assert len(sql.execute("SELECT 1 FROM qgis.sections WHERE section_id = %s", (section,)).fetchall()) == 1
+
+
+def test_pieces_of_a_split_inherit_the_parent(api):
+    """A confirmed cut splits the section; each piece has the parent's claims through
+    `split_into`, in the row and in the feature, marked with where they come from."""
+    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    owner = journal_claim(api["ann"], section, "owner", "Made-up Gas Co.", by("1937"))
+    _, link = removal(api["ann"], line(MID, JAL), section, relation="overlaps", score=0.98)
+    out = api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
+    rest = str(out["continuing_section_id"])
+
+    p = props(api["ann"], rest)
+    assert [(c["claim_id"], c["inherited_from"]) for c in p["accepted"]["owner"]] == [(owner, section)]
+
+    [f] = api["ann"].get("/features", ids=rest)
+    FeatureDetail.model_validate(f)
+    mine = [c for c in f["inherited_claims"] if c["attribute_key"] == "owner"]
+    assert [(c["id"], c["inherited_from"]) for c in mine] == [(owner, section)]
+    keys = [(c["inherited_from"], c["attribute_key"], c["created_at"]) for c in f["inherited_claims"]]
+    assert keys == sorted(keys)                                     # stable: by feature, attribute, time
+    assert {x["asserted_by_kind"] for x in f["links"]} == {"person"}
+
+
+def test_views_are_the_functions_over_every_section(api, sql):
+    """`store.claim_scope` and `store.section_dates` are `*_for(NULL)`, and asking for one
+    section gives that section's row of the view."""
+    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    _, link = removal(api["ann"], line(HOBBS, JAL), section)
+    api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})     # dates through scope
+
+    def differ(a, b):
+        return sql.execute(f"SELECT count(*) AS n FROM (({a} EXCEPT ALL {b}) UNION ALL ({b} EXCEPT ALL {a})) d"
+                           ).fetchone()["n"]
+
+    assert differ("SELECT * FROM store.claim_scope", "SELECT * FROM store.claim_scope_for(NULL)") == 0
+    assert differ("SELECT * FROM store.section_dates", "SELECT * FROM store.section_dates_for(NULL)") == 0
+    one = sql.execute("SELECT * FROM store.section_dates_for(ARRAY[%s::uuid])", (section,)).fetchall()
+    assert one == sql.execute("SELECT * FROM store.section_dates WHERE section_id = %s", (section,)).fetchall()
+    assert str(one[0]["time_end"]) == "1960-12-31"

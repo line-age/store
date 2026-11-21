@@ -162,7 +162,7 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
         # Never prepared: after a few runs Postgres would switch to a generic plan, which
         # cannot see how many ids there are and took 250 ms instead of 30 for 500 ids.
         {"ids": ids}, prepare=False).fetchall()
-    out = {}
+    out: dict[uuid.UUID, dict] = {}
     for r in rows:
         sid = r.pop("section_id")
         r["shown_years"] = sorted(r["shown_years"])
@@ -198,11 +198,11 @@ def features(conn: Connection, ids: list[uuid.UUID]) -> list[dict]:
     if not ids:
         return []
     scope = conn.execute("SELECT section_id, feature_id FROM store.claim_scope_for(%s::uuid[]) "
-                         "WHERE section_id <> feature_id", (ids,)).fetchall()
+                         "WHERE section_id <> feature_id ORDER BY section_id, feature_id", (ids,)).fetchall()
     owners = list({*ids, *(s["feature_id"] for s in scope)})
     claims = conn.execute(
         f"""SELECT {_CLAIM_COLUMNS} FROM store.claim c JOIN store.agent a ON a.id = c.asserted_by
-            WHERE c.feature_id = ANY(%s) ORDER BY c.feature_id, c.attribute_key, c.created_at""",
+            WHERE c.feature_id = ANY(%s) ORDER BY c.feature_id, c.attribute_key, c.created_at, c.id""",
         (owners,)).fetchall()
     claim_ids = [c["id"] for c in claims]
     cites = conn.execute(
@@ -214,7 +214,9 @@ def features(conn: Connection, ids: list[uuid.UUID]) -> list[dict]:
     reviews = conn.execute(
         """SELECT r.*, a.name AS reviewer_name FROM store.review r JOIN store.agent a ON a.id = r.reviewer_id
            WHERE r.claim_id = ANY(%s) ORDER BY r.created_at""", (claim_ids,)).fetchall()
-    cites_of, reviews_of, claims_of = {}, {}, {}
+    cites_of: dict[uuid.UUID, list[dict]] = {}
+    reviews_of: dict[uuid.UUID, list[dict]] = {}
+    claims_of: dict[uuid.UUID, list[dict]] = {}
     for x in cites:
         cites_of.setdefault(x["claim_id"], []).append(x)
     for x in reviews:
@@ -224,7 +226,8 @@ def features(conn: Connection, ids: list[uuid.UUID]) -> list[dict]:
         c["reviews"] = reviews_of.get(c["id"], [])
         claims_of.setdefault(c.pop("feature_id"), []).append(c)
     links = conn.execute(
-        """SELECT l.*, a.name AS asserted_by_name FROM store.feature_link l JOIN store.agent a ON a.id = l.asserted_by
+        """SELECT l.*, a.name AS asserted_by_name, a.kind AS asserted_by_kind
+           FROM store.feature_link l JOIN store.agent a ON a.id = l.asserted_by
            WHERE l.from_feature_id = ANY(%s) OR l.to_feature_id = ANY(%s) ORDER BY l.created_at""",
         (ids, ids)).fetchall()
     keys = conn.execute("SELECT entity_id, system, key FROM store.external_key WHERE entity_id = ANY(%s)",
@@ -232,8 +235,9 @@ def features(conn: Connection, ids: list[uuid.UUID]) -> list[dict]:
     dates = {d.pop("section_id"): d for d in conn.execute(
         "SELECT section_id, existed_from, existed_to, time_start, time_end, date_conflict "
         "FROM store.section_dates_for(%s::uuid[])", (ids,)).fetchall()}
-    out = []
+    out: list[dict] = []
     for i in ids:
+        # in scope order (by feature), each feature's claims by attribute, oldest first
         inherited = [{**c, "inherited_from": s["feature_id"]}
                      for s in scope if s["section_id"] == i for c in claims_of.get(s["feature_id"], [])]
         out.append({**found[i], "dates": dates.get(i), "claims": claims_of.get(i, []),

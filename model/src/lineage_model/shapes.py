@@ -227,7 +227,7 @@ class SectionRow(BaseModel, extra="allow"):
     row_id: uuid.UUID
     section_id: uuid.UUID
     label: str | None = None
-    network: str | None = None
+    network: Network | None = None
     time_end: dt.date | None = None
     end_status: Literal["confirmed", "proposed"] | None = None
     line_id: uuid.UUID | None = None
