@@ -86,9 +86,9 @@ Every write names an agent, or the database refuses it.
 | `POST /claims/{id}/reviews` | accept, reject, or correct with a replacement claim |
 | `POST /links/{id}/reviews` | confirm or reject; confirming `overlaps` splits the section |
 | `POST /citation-requests`, `POST /citation-requests/next`, `POST /citation-requests/{id}/complete` | Ask AI and bulk requests, and `cite`'s queue |
-| `GET /sections` | GeoJSON from `qgis.sections`, by bbox, date and network; each row also carries the section's accepted claims (raw, newest first, its own and those through confirmed links), cited candidates per attribute, the years of the sheets that show it and, once confirmed, the year of the sheet that leaves it out |
-| `GET /features/{id}` | a feature with its claims, citations, reviews, links and dates; `inherited_claims` are the claims it has through confirmed links, each with `inherited_from` |
-| `GET /features?ids=a,b` | up to 200 features at once, in that order; an unknown id is left out |
+| `GET /sections` | GeoJSON from `qgis.sections`, by bbox, date and network. With `include=summary` each row also carries the section's accepted claims (raw, newest first, its own and those through confirmed links), cited candidates per attribute, the years of the sheets that show it and, once confirmed, the year of the sheet that leaves it out |
+| `GET /features` | features in full: by `ids=a,b` (up to 200, in that order, an unknown id left out), or the features of a `network` or `kind` in id order |
+| `GET /features/{id}` | one feature with its claims, citations, reviews, links and dates; `inherited_claims` are the claims it has through confirmed links, each with `inherited_from` |
 | `GET /missing?attribute=diameter` | drawn sections with no accepted claim for an attribute |
 | `GET /links?status=proposed` | links waiting for a person; `network=` keeps those touching that network; each names who asserted it and their kind |
 

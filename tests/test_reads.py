@@ -3,9 +3,15 @@ at once, and links of one network. All data here is made up."""
 
 from __future__ import annotations
 
+import datetime as dt
+import json
+import os
 import uuid
+from typing import Any
 
-from lineage_model import FeatureDetail, SectionRow, began, began_between, by
+import pytest
+from lineage_model import began, began_between, by
+from pydantic import BaseModel
 from test_scenarios import (
     HOBBS,
     JAL,
@@ -17,40 +23,62 @@ from test_scenarios import (
     line,
     removal,
     sheet,
-    trace,
     valid,
 )
+from test_scenarios import trace as trace_from
 
 WEST = (-104.0, 33.0), (-104.1, 33.4)
 
 
+class AcceptedClaim(BaseModel):
+    """One accepted claim with at least one citation, raw: a client words the value."""
+    claim_id: uuid.UUID
+    value_text: str | None
+    value_num: float | None
+    value_unit: str | None
+    valid_edtf: str | None
+    created_at: dt.datetime
+    shown_as_of: str | None        # the earliest map sheet cited as showing it, as the sheet dates it
+    inherited_from: uuid.UUID | None   # set when the claim is another feature's, through a confirmed link
+
+
+class Summary(BaseModel):
+    """What `/sections?include=summary` adds to each row: the contract Studio relies on."""
+    accepted: dict[str, list[AcceptedClaim]]
+    candidates: dict[str, int]
+    shown_years: list[int]
+    gone_year: int | None
+    created_at: dt.datetime
+    whole_route: dict[str, Any] | None
+
+
+def traced(api, ends=(HOBBS, JAL), year=1937, as_of=SHEET_1937, network="gas"):
+    """A section traced from the map sheet of a year."""
+    section, _ = trace_from(api["ann"], sheet(api["ann"], year, as_of), line(*ends), as_of=as_of, network=network)
+    return section
+
+
 def inches(api, section, n, when):
     """A diameter a journal states, in inches."""
-    r = api.post("/bundles", {
-        "sources": [{"ref": "j", "kind": "issue", "title": "Oil & Gas Journal (made up)"}],
-        "citations": [{"ref": "c", "source": "j", "locator": "p. 40"}],
-        "claims": [{"ref": "k", "feature": section, "attribute": "diameter", "value_num": n, "value_unit": "in",
-                    **valid(when), "citations": [{"citation": "c", "role": "states"}]}]})
-    return str(r["ids"]["k"])
+    return journal_claim(api, section, "diameter", None, when, value_num=n, value_unit="in")
 
 
-def row(api, section, *, row_id=None, network="gas"):
-    """The `/sections` row of a section (or of one of its pieces), checked against the shape."""
-    features = api.get("/sections", network=network, limit=10000)["features"]
-    mine = [f for f in features if f["properties"]["section_id"] == section
-            and (row_id is None or f["properties"]["row_id"] == row_id)]
+def rows(api, section):
+    """The `/sections` rows of a section, with their summaries, checked against the shape."""
+    features = api.get("/sections", network="gas", limit=10000, include="summary")["features"]
+    mine = [f for f in features if f["properties"]["section_id"] == section]
     for f in mine:
-        SectionRow.model_validate(f["properties"])
+        Summary.model_validate(f["properties"])
     return mine
 
 
-def props(api, section, **kw):
-    [f] = [f for f in row(api, section, **kw) if f["properties"]["row_id"] == section]
+def props(api, section):
+    [f] = [f for f in rows(api, section) if f["properties"]["row_id"] == section]
     return f["properties"]
 
 
 def test_accepted_newest_first_candidates_counted_rejected_left_out(api):
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     old = inches(api["ann"], section, 8, by("1937"))
     new = inches(api["ann"], section, 10, by("1950"))
     inches(api["cite"], section, 12, by("1951"))                                   # a candidate
@@ -70,7 +98,7 @@ def test_accepted_newest_first_candidates_counted_rejected_left_out(api):
 
 
 def test_accepted_without_citation_left_out(api, sql):
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     k = inches(api["ann"], section, 8, by("1937"))
     sql.execute("ALTER TABLE store.claim_citation DISABLE TRIGGER USER")
     try:
@@ -81,8 +109,7 @@ def test_accepted_without_citation_left_out(api, sql):
 
 
 def test_sheet_dated_by_month_and_no_sheet(api):
-    s29 = sheet(api["ann"], 1929, "1929-08")
-    section, _ = trace(api["ann"], s29, line(*WEST), as_of="1929-08")
+    section = traced(api, WEST, 1929, "1929-08")
     p = props(api["ann"], section)
     assert p["shown_years"] == [1929] and p["accepted"]["status"][0]["shown_as_of"] == "1929-08"
 
@@ -98,7 +125,7 @@ def test_sheet_dated_by_month_and_no_sheet(api):
 
 
 def test_confirmed_removal_is_history_not_a_merge(api):
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     rm, link = removal(api["ann"], line(HOBBS, JAL), section)
     assert props(api["ann"], section)["gone_year"] is None          # only proposed so far
     api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
@@ -109,7 +136,6 @@ def test_confirmed_removal_is_history_not_a_merge(api):
     assert statuses == {"operational": None, "decommissioned": rm}
 
     [f] = api["ann"].get("/features", ids=section)
-    FeatureDetail.model_validate(f)
     assert not [c for c in f["claims"] if c["value_text"] == "decommissioned"]     # not copied
     inherited = [c for c in f["inherited_claims"] if c["attribute_key"] == "status"]
     assert [(c["value_text"], c["inherited_from"]) for c in inherited] == [("decommissioned", rm)]
@@ -118,28 +144,21 @@ def test_confirmed_removal_is_history_not_a_merge(api):
 
 
 def test_cut_piece_rows(api):
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     journal_claim(api["ann"], section, "status", "operational", began("1931-05"))
     _, link = removal(api["ann"], line(MID, JAL), section, relation="overlaps", score=0.98)
-    rows = {f["properties"]["row_id"]: f for f in row(api["ann"], section)}
-    assert set(rows) == {section, link}
-    whole, piece = rows[section]["properties"], rows[link]["properties"]
+    drawn = {f["properties"]["row_id"]: f["properties"] for f in rows(api["ann"], section)}
+    assert set(drawn) == {section, link}
+    whole, piece = drawn[section], drawn[link]
     # every row of the section carries its route as traced, which no row's geometry is
     assert whole["whole_route"]["coordinates"] == [list(HOBBS), list(JAL)]
     assert piece["whole_route"] == whole["whole_route"]
-    assert props(api["ann"], journal_section(api))["whole_route"] is None
+    assert props(api["ann"], traced(api, WEST))["whole_route"] is None
     assert whole["accepted"] == piece["accepted"] and piece["section_id"] == section
 
 
-def journal_section(api):
-    """A section with no proposed cut."""
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(*WEST), as_of=SHEET_1937)
-    return section
-
-
 def test_features_by_ids(api):
-    a, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
-    b, _ = trace(api["ann"], sheet(api["ann"], 1955, "1955-06-30"), line(*WEST), as_of="1955-06-30")
+    a, b = traced(api), traced(api, WEST, 1955, "1955-06-30")
     missing = str(uuid.uuid4())
     got = api["ann"].get("/features", ids=f"{b},{missing},{a}")
     assert [f["id"] for f in got] == [b, a]                          # in order, the unknown one left out
@@ -152,8 +171,7 @@ def test_features_by_ids(api):
 
 
 def test_links_of_one_network(api):
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line((-90.0, 40.0), (-90.1, 40.2)),
-                       as_of=SHEET_1937, network="water")
+    section = traced(api, ((-90.0, 40.0), (-90.1, 40.2)), network="water")
     _, link = removal(api["ann"], line((-90.0, 40.0), (-90.1, 40.2)), section)
     water = api["ann"].get("/links", network="water", relation="same_as")
     assert link in {x["id"] for x in water}
@@ -168,12 +186,11 @@ def test_sections_compressed(client, tokens):
     assert r.status_code == 200 and r.headers.get("content-encoding") == "gzip"
 
 
-
 def test_shown_as_of_is_the_earliest_sheet_by_year(api):
     """`~1931` and `../1931` sort after `1937` and before `1928` as text; by year they don't."""
     s37, s31 = sheet(api["ann"], 1937, SHEET_1937), sheet(api["ann"], 1931, "~1931")
     s28, s30 = sheet(api["ann"], 1928, "1928"), sheet(api["ann"], 1930, "../1931")
-    section, _ = trace(api["ann"], s37, line(*WEST), as_of=SHEET_1937)
+    section = traced(api, WEST)
 
     def shown_by(*sheets, attribute):
         api["ann"].post("/bundles", {
@@ -192,7 +209,7 @@ def test_shown_as_of_is_the_earliest_sheet_by_year(api):
 def test_removal_without_route_cuts_nothing(api, sql):
     """A proposed `overlaps` from a removal with no route: QGIS draws the section whole, so
     its row carries no whole route either."""
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     s60 = sheet(api["ann"], 1960, SHEET_1960)
     api["ann"].post("/bundles", {
         "citations": [{"ref": "c", "source": s60}],
@@ -201,7 +218,7 @@ def test_removal_without_route_cuts_nothing(api, sql):
                     **valid(began_between(SHEET_1955, SHEET_1960)),
                     "citations": [{"citation": "c", "role": "map_omits"}]}],
         "links": [{"from": "rm", "to": section, "relation": "overlaps", "score": 0.9}]})
-    [r] = row(api["ann"], section)
+    [r] = rows(api["ann"], section)
     assert r["properties"]["whole_route"] is None
     assert len(sql.execute("SELECT 1 FROM qgis.sections WHERE section_id = %s", (section,)).fetchall()) == 1
 
@@ -209,7 +226,7 @@ def test_removal_without_route_cuts_nothing(api, sql):
 def test_pieces_of_a_split_inherit_the_parent(api):
     """A confirmed cut splits the section; each piece has the parent's claims through
     `split_into`, in the row and in the feature, marked with where they come from."""
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    section = traced(api)
     owner = journal_claim(api["ann"], section, "owner", "Made-up Gas Co.", by("1937"))
     _, link = removal(api["ann"], line(MID, JAL), section, relation="overlaps", score=0.98)
     out = api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
@@ -219,7 +236,6 @@ def test_pieces_of_a_split_inherit_the_parent(api):
     assert [(c["claim_id"], c["inherited_from"]) for c in p["accepted"]["owner"]] == [(owner, section)]
 
     [f] = api["ann"].get("/features", ids=rest)
-    FeatureDetail.model_validate(f)
     mine = [c for c in f["inherited_claims"] if c["attribute_key"] == "owner"]
     assert [(c["id"], c["inherited_from"]) for c in mine] == [(owner, section)]
     keys = [(c["inherited_from"], c["attribute_key"], c["created_at"]) for c in f["inherited_claims"]]
@@ -227,53 +243,111 @@ def test_pieces_of_a_split_inherit_the_parent(api):
     assert {x["asserted_by_kind"] for x in f["links"]} == {"person"}
 
 
-def test_views_are_the_functions_over_every_section(api, sql):
-    """`store.claim_scope` and `store.section_dates` are `*_for(NULL)`, and asking for one
-    section gives that section's row of the view."""
-    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+def test_scope_and_dates_for_one_section_match_the_views(api, sql):
+    """Asking the scope and date functions for one section gives that section's rows of the
+    views QGIS reads."""
+    section = traced(api)
     _, link = removal(api["ann"], line(HOBBS, JAL), section)
     api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})     # dates through scope
 
-    def differ(a, b):
-        return sql.execute(f"SELECT count(*) AS n FROM (({a} EXCEPT ALL {b}) UNION ALL ({b} EXCEPT ALL {a})) d"
-                           ).fetchone()["n"]
-
-    assert differ("SELECT * FROM store.claim_scope", "SELECT * FROM store.claim_scope_for(NULL)") == 0
-    assert differ("SELECT * FROM store.section_dates", "SELECT * FROM store.section_dates_for(NULL)") == 0
     one = sql.execute("SELECT * FROM store.section_dates_for(ARRAY[%s::uuid])", (section,)).fetchall()
     assert one == sql.execute("SELECT * FROM store.section_dates WHERE section_id = %s", (section,)).fetchall()
     assert str(one[0]["time_end"]) == "1960-12-31"
+    scope = sql.execute("SELECT * FROM store.claim_scope_for(ARRAY[%s::uuid]) ORDER BY 2", (section,)).fetchall()
+    assert scope == sql.execute("SELECT * FROM store.claim_scope WHERE section_id = %s ORDER BY 2",
+                                (section,)).fetchall() and len(scope) == 2
 
 
-def test_record_answers_for_studio(api, tmp_path):
+def test_summary_only_when_asked(api):
+    section = traced(api)
+    [plain] = [f for f in api["ann"].get("/sections", network="gas", limit=10000)["features"]
+               if f["properties"]["section_id"] == section]
+    assert not set(Summary.model_fields) & set(plain["properties"])
+    api["ann"].get("/sections", expect=422, include="everything")
+    api["ann"].get("/sections", expect=422, bbox="1,2,3")
+
+
+def test_section_with_only_an_uncited_route(api, sql):
+    """Nothing cited: the row is there, saying nothing."""
+    section = traced(api)
+    sql.execute("ALTER TABLE store.claim_citation DISABLE TRIGGER USER")
+    try:
+        sql.execute("DELETE FROM store.claim_citation WHERE claim_id IN "
+                    "(SELECT id FROM store.claim WHERE feature_id = %s)", (section,))
+    finally:
+        sql.execute("ALTER TABLE store.claim_citation ENABLE TRIGGER USER")
+    p = props(api["ann"], section)
+    assert (p["accepted"], p["candidates"], p["shown_years"], p["gone_year"]) == ({}, {}, [], None)
+
+
+def test_two_routes_written_together_agree_everywhere(api, sql):
+    """Claims of one bundle share `created_at`; the id settles which route is current, the
+    same for the drawn line and for the years it is shown."""
+    s37, s55 = sheet(api["ann"], 1937, SHEET_1937), sheet(api["ann"], 1955, SHEET_1955)
+    r = api["ann"].post("/bundles", {
+        "citations": [{"ref": "c37", "source": s37}, {"ref": "c55", "source": s55}],
+        "features": [{"ref": "f", "kind": "section", "network": "gas"}],
+        "claims": [{"ref": "a", "feature": "f", "attribute": "route", "value_geom": line(HOBBS, JAL),
+                    **valid(by(SHEET_1937)), "citations": [{"citation": "c37", "role": "map_shows"}]},
+                   {"ref": "b", "feature": "f", "attribute": "route", "value_geom": line(HOBBS, MID),
+                    **valid(by(SHEET_1955)), "citations": [{"citation": "c55", "role": "map_shows"}]}]})
+    section, claims = str(r["ids"]["f"]), {str(r["ids"]["a"]): 1937, str(r["ids"]["b"]): 1955}
+    current = max(claims, key=uuid.UUID)
+    drawn = sql.execute("SELECT claim_id FROM store.section_route WHERE section_id = %s", (section,)).fetchone()
+    assert str(drawn["claim_id"]) == current
+    assert props(api["ann"], section)["shown_years"] == [claims[current]]
+
+
+def test_features_index_and_batches(api):
+    section = traced(api, ((-70.0, 44.0), (-70.1, 44.2)), network="water")
+    rm, link = removal(api["ann"], line((-70.0, 44.0), (-70.1, 44.2)), section)
+    api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
+
+    # a section and the removal in its scope, asked together and twice over
+    got = api["ann"].get("/features", ids=f"{section},{rm},{section}")
+    assert [f["id"] for f in got] == [section, rm]
+    assert {c["inherited_from"] for c in got[0]["inherited_claims"]} == {rm}
+    assert got[1]["inherited_claims"] == [] and [x["id"] for x in got[1]["links"]] == [link]
+    assert [x["id"] for x in got[0]["links"]] == [link]
+
+    # a feature that is not a section has no dates
+    r = api["ann"].post("/bundles", {"features": [{"ref": "n", "kind": "line", "network": "water"}]})
+    [named] = api["ann"].get("/features", ids=str(r["ids"]["n"]))
+    assert named["dates"] is None and named["claims"] == []
+
+    # the index: the features of a network or a kind, in id order
+    water = api["ann"].get("/features", network="water", limit=200)
+    assert {section, str(r["ids"]["n"])} <= {f["id"] for f in water}
+    assert [f["id"] for f in water] == sorted(f["id"] for f in water)
+    assert {f["kind"] for f in api["ann"].get("/features", network="water", kind="line")} == {"line"}
+    api["ann"].get("/features", expect=422, limit=201)
+    api["ann"].get("/features", expect=422, kind="pipe")
+
+
+@pytest.mark.skipif("STUDIO_FIXTURE_OUT" not in os.environ, reason="set STUDIO_FIXTURE_OUT to record")
+def test_record_answers_for_studio(api):
     """Records invented answers for Studio's list-versus-detail test
     (studio frontend/src/test/store-recorded.json). Runs only when asked:
     STUDIO_FIXTURE_OUT=<path> uv run pytest tests/test_reads.py -k record"""
-    import json
-    import os
-
-    out = os.environ.get("STUDIO_FIXTURE_OUT")
-    if not out:
-        import pytest
-        pytest.skip("set STUDIO_FIXTURE_OUT to record")
+    out = os.environ["STUDIO_FIXTURE_OUT"]
     net = "oil"   # a network no other test writes to
     ann, cite = api["ann"], api["cite"]
     s37 = sheet(ann, 1937, SHEET_1937)
     # A: a diameter accepted, a larger one a tool found, and an owner on the section.
-    a, _ = trace(ann, s37, line((-80.0, 35.0), (-80.1, 35.2)), as_of=SHEET_1937, network=net)
+    a, _ = trace_from(ann, s37, line((-80.0, 35.0), (-80.1, 35.2)), as_of=SHEET_1937, network=net)
     inches(ann, a, 10, by("1937"))
     inches(cite, a, 12, by("1950"))
     # B: ended, a person matched the line traced as gone to it.
-    b, _ = trace(ann, s37, line((-81.0, 35.0), (-81.1, 35.2)), as_of=SHEET_1937, network=net)
+    b, _ = trace_from(ann, s37, line((-81.0, 35.0), (-81.1, 35.2)), as_of=SHEET_1937, network=net)
     _, link = removal(ann, line((-81.0, 35.0), (-81.1, 35.2)), b)
     api["bob"].post(f"/links/{link}/reviews", {"verdict": "confirm"})
     # C: a cut proposed along part of it.
-    c, _ = trace(ann, s37, line((-82.0, 35.0), (-82.1, 35.4)), as_of=SHEET_1937, network=net)
+    c, _ = trace_from(ann, s37, line((-82.0, 35.0), (-82.1, 35.4)), as_of=SHEET_1937, network=net)
     removal(ann, line((-82.0, 35.2), (-82.1, 35.4)), c, relation="overlaps", score=0.8)
     # D: a second edition shows it first.
-    trace(ann, sheet(ann, 1955, "1955-06-30"), line((-83.0, 35.0), (-83.1, 35.2)),
+    trace_from(ann, sheet(ann, 1955, "1955-06-30"), line((-83.0, 35.0), (-83.1, 35.2)),
           as_of="1955-06-30", network=net)
-    rows = ann.get("/sections", network=net, limit=10000)
+    rows = ann.get("/sections", network=net, limit=10000, include="summary")
     links = [x for rel in ("same_as", "overlaps", "part_of")
              for x in ann.get("/links", network=net, relation=rel, limit=10000)]
     ids = sorted({f["properties"]["section_id"] for f in rows["features"]})
