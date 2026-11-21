@@ -199,6 +199,14 @@ Not drawn:
   `owner` or `operator` claim, not a new membership. So moving a section to another line,
   or taking it out of one, is a correction: a person rejects the confirmed `part_of` and,
   for a move, confirms the new one, in one bundle.
+  - A rejected link says the membership was never true. It must not be used for one that
+    was true and ended; the rule above is what makes every move a correction.
+  - If a section is ever found to have truly changed lines, the rule is wrong for that
+    case and the answer is not a reject. It is a validity period on the link, in the same
+    shape as a claim's (EDTF text with earliest and latest bounds, optionally cited), and
+    an exclusion constraint over (section, period) for confirmed links in place of the
+    unique index, so two undated memberships still conflict. Not built: no such case is
+    known. Both are additions to what is here.
 
 ## Attributes (starting set)
 
