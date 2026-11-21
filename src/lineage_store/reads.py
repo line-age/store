@@ -40,10 +40,9 @@ def sections(conn: Connection, bbox: tuple[float, float, float, float] | None, a
     about = section_summaries(conn, list({r["section_id"] for r in rows}))
     for r in rows:
         extra = dict(about.get(r["section_id"], _NO_SUMMARY))
-        whole = extra.pop("whole_route")
+        if extra["whole_route"] is None:
+            del extra["whole_route"]      # only where a proposed cut makes rows parts of the route
         r.update(extra)
-        if r["row_id"] == r["section_id"] and whole is not None:
-            r["whole_route"] = whole      # the row's own geometry leaves out a proposed cut
     return _feature_collection(rows)
 
 

@@ -241,8 +241,7 @@ class SectionRow(BaseModel, extra="allow"):
     # the year of the sheet that no longer shows it, once a person confirmed its removal
     gone_year: int | None = None
     created_at: dt.datetime | None = None
-    # on the section's own row when a proposed cut makes the row's geometry part of it:
-    # the route as traced
+    # where a proposed cut makes each row of the section a part of it: the route as traced
     whole_route: dict[str, Any] | None = None
 
 

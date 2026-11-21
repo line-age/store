@@ -111,10 +111,17 @@ def test_cut_piece_rows(api):
     rows = {f["properties"]["row_id"]: f for f in row(api["ann"], section)}
     assert set(rows) == {section, link}
     whole, piece = rows[section]["properties"], rows[link]["properties"]
-    # the section's own row carries its route as traced; the piece does not
+    # every row of the section carries its route as traced, which no row's geometry is
     assert whole["whole_route"]["coordinates"] == [list(HOBBS), list(JAL)]
-    assert "whole_route" not in piece
+    assert piece["whole_route"] == whole["whole_route"]
+    assert "whole_route" not in props(api["ann"], journal_section(api))
     assert whole["accepted"] == piece["accepted"] and piece["section_id"] == section
+
+
+def journal_section(api):
+    """A section with no proposed cut."""
+    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(*WEST), as_of=SHEET_1937)
+    return section
 
 
 def test_features_by_ids(api):
