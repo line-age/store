@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, Response
 from lineage_model import (
     AgentIn,
@@ -16,6 +17,7 @@ from lineage_model import (
     CitationRequestDone,
     CitationRequestIn,
     ClaimReviewIn,
+    FeatureKind,
     LinkReviewIn,
 )
 
@@ -23,6 +25,28 @@ from . import reads, writes
 from .auth import Authenticator, Principal
 from .config import Settings
 from .db import Database
+
+MAX_FEATURES = 200   # full features in one answer
+
+
+def _bbox(text: str | None) -> tuple[float, float, float, float] | None:
+    if not text:
+        return None
+    try:
+        minx, miny, maxx, maxy = (float(x) for x in text.split(","))
+    except ValueError:
+        raise HTTPException(422, "bbox is minx,miny,maxx,maxy in WGS 84") from None
+    return minx, miny, maxx, maxy
+
+
+def _ids(text: str) -> list[uuid.UUID]:
+    try:
+        ids = [uuid.UUID(x.strip()) for x in text.split(",") if x.strip()]
+    except ValueError:
+        raise HTTPException(422, "ids are feature ids, comma-separated") from None
+    if not 1 <= len(ids) <= MAX_FEATURES:
+        raise HTTPException(422, f"ask for 1 to {MAX_FEATURES} features at once")
+    return ids
 
 
 def create_app(settings: Settings | None = None, authenticator: Authenticator | None = None) -> FastAPI:
@@ -41,6 +65,8 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
         db.close()
 
     app = FastAPI(title="Lineage store", version="0.1.0", lifespan=lifespan)
+    # A network's list is several megabytes of JSON; compressed it is a fraction of that.
+    app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=4)
 
     def db() -> Database:
         return state["db"]
@@ -114,21 +140,31 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
 
     @app.get("/sections")
     def get_sections(w: Who, d: Db, bbox: str | None = None, at: dt.date | None = None,
-                     network: str | None = None, limit: int = Query(1000, le=10000)):
-        box = None
-        if bbox:
-            try:
-                box = tuple(float(x) for x in bbox.split(","))
-                assert len(box) == 4
-            except (ValueError, AssertionError):
-                raise HTTPException(422, "bbox is minx,miny,maxx,maxy in WGS 84") from None
+                     network: str | None = None, limit: int = Query(1000, le=10000),
+                     include: Annotated[Literal["summary"] | None, Query(
+                         description="`summary`: each row also carries its section's accepted claims, "
+                                     "waiting candidates and the years it is shown")] = None):
         with d.read() as conn:
-            return reads.sections(conn, box, at, network, limit)
+            return reads.sections(conn, _bbox(bbox), at, network, limit, summary=include == "summary")
+
+    @app.get("/features")
+    def get_features(w: Who, d: Db,
+                     ids: Annotated[str | None, Query(description="Comma-separated feature ids, 1 to 200; "
+                                                                  "answered in that order")] = None,
+                     network: str | None = None, kind: FeatureKind | None = None,
+                     limit: int = Query(50, ge=1, le=MAX_FEATURES)):
+        """Features in full. By `ids`, or the features of a network or a kind in id order."""
+        with d.read() as conn:
+            wanted = _ids(ids) if ids is not None else reads.feature_ids(conn, network, kind, limit)
+            return reads.features(conn, wanted)
 
     @app.get("/features/{feature_id}")
     def get_feature(feature_id: uuid.UUID, w: Who, d: Db):
         with d.read() as conn:
-            return reads.feature(conn, feature_id)
+            found = reads.features(conn, [feature_id])
+        if not found:
+            raise HTTPException(404, "no such feature")
+        return found[0]
 
     @app.get("/missing")
     def get_missing(attribute: str, w: Who, d: Db, network: str | None = None,
@@ -138,9 +174,10 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
 
     @app.get("/links")
     def get_links(w: Who, d: Db, status: Literal["proposed", "confirmed", "rejected"] | None = None,
-                  relation: str | None = None, limit: int = Query(1000, le=10000)):
+                  relation: str | None = None, network: str | None = None,
+                  limit: int = Query(1000, le=10000)):
         with d.read() as conn:
-            return reads.links(conn, status, relation, limit)
+            return reads.links(conn, status, relation, network, limit)
 
     @app.get("/citation-requests")
     def get_requests(w: Who, d: Db, status: str | None = None, limit: int = Query(100, le=1000)):
