@@ -130,6 +130,7 @@ def test_features_by_ids(api):
     missing = str(uuid.uuid4())
     got = api["ann"].get("/features", ids=f"{b},{missing},{a}")
     assert [f["id"] for f in got] == [b, a]                          # in order, the unknown one left out
+    assert [f["id"] for f in api["ann"].get("/features", ids=f" {b}, {a} ")] == [b, a]
     assert got[1] == {**api["ann"].get(f"/features/{a}")}            # one at a time says the same
     assert got[1]["inherited_claims"] == []
     api["ann"].get("/features", expect=422, ids=",".join(str(uuid.uuid4()) for _ in range(201)))

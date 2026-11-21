@@ -131,7 +131,7 @@ def create_app(settings: Settings | None = None, authenticator: Authenticator | 
     @app.get("/features")
     def get_features(w: Who, d: Db, ids: Annotated[str, Query(description="Comma-separated feature ids")]):
         try:
-            wanted = [uuid.UUID(x) for x in ids.split(",") if x.strip()]
+            wanted = [uuid.UUID(x.strip()) for x in ids.split(",") if x.strip()]
         except ValueError:
             raise HTTPException(422, "ids are feature ids, comma-separated") from None
         if not 1 <= len(wanted) <= 200:
