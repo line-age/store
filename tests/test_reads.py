@@ -5,8 +5,21 @@ from __future__ import annotations
 
 import uuid
 
-from lineage_model import FeatureDetail, SectionRow, began, by
-from test_scenarios import HOBBS, JAL, MID, SHEET_1937, journal_claim, line, removal, sheet, trace, valid
+from lineage_model import FeatureDetail, SectionRow, began, began_between, by
+from test_scenarios import (
+    HOBBS,
+    JAL,
+    MID,
+    SHEET_1937,
+    SHEET_1955,
+    SHEET_1960,
+    journal_claim,
+    line,
+    removal,
+    sheet,
+    trace,
+    valid,
+)
 
 WEST = (-104.0, 33.0), (-104.1, 33.4)
 
@@ -154,3 +167,40 @@ def test_sections_compressed(client, tokens):
                                                                    "Accept-Encoding": "gzip"})
     assert r.status_code == 200 and r.headers.get("content-encoding") == "gzip"
 
+
+
+def test_shown_as_of_is_the_earliest_sheet_by_year(api):
+    """`~1931` and `../1931` sort after `1937` and before `1928` as text; by year they don't."""
+    s37, s31 = sheet(api["ann"], 1937, SHEET_1937), sheet(api["ann"], 1931, "~1931")
+    s28, s30 = sheet(api["ann"], 1928, "1928"), sheet(api["ann"], 1930, "../1931")
+    section, _ = trace(api["ann"], s37, line(*WEST), as_of=SHEET_1937)
+
+    def shown_by(*sheets, attribute):
+        api["ann"].post("/bundles", {
+            "citations": [{"ref": f"c{i}", "source": s} for i, s in enumerate(sheets)],
+            "claims": [{"feature": section, "attribute": attribute, "value_text": "Made-up Gas Co.",
+                        **valid(by(SHEET_1937)),
+                        "citations": [{"citation": f"c{i}", "role": "map_shows"} for i in range(len(sheets))]}]})
+
+    shown_by(s37, s31, attribute="owner")
+    shown_by(s30, s28, attribute="operator")
+    p = props(api["ann"], section)
+    assert p["accepted"]["owner"][0]["shown_as_of"] == "~1931"
+    assert p["accepted"]["operator"][0]["shown_as_of"] == "1928"
+
+
+def test_removal_without_route_cuts_nothing(api, sql):
+    """A proposed `overlaps` from a removal with no route: QGIS draws the section whole, so
+    its row carries no whole route either."""
+    section, _ = trace(api["ann"], sheet(api["ann"], 1937, SHEET_1937), line(HOBBS, JAL), as_of=SHEET_1937)
+    s60 = sheet(api["ann"], 1960, SHEET_1960)
+    api["ann"].post("/bundles", {
+        "citations": [{"ref": "c", "source": s60}],
+        "features": [{"ref": "rm", "kind": "section", "network": "gas"}],
+        "claims": [{"feature": "rm", "attribute": "status", "value_text": "decommissioned",
+                    **valid(began_between(SHEET_1955, SHEET_1960)),
+                    "citations": [{"citation": "c", "role": "map_omits"}]}],
+        "links": [{"from": "rm", "to": section, "relation": "overlaps", "score": 0.9}]})
+    [r] = row(api["ann"], section)
+    assert r["properties"].get("whole_route") is None
+    assert len(sql.execute("SELECT 1 FROM qgis.sections WHERE section_id = %s", (section,)).fetchall()) == 1

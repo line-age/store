@@ -234,7 +234,9 @@ class SectionRow(BaseModel, extra="allow"):
     # attribute key -> accepted claims, newest first; the section's own and those it has
     # through confirmed links (store's scope)
     accepted: dict[str, list[AcceptedClaim]]
-    # attribute key -> how many cited candidate claims of the section's own wait on it
+    # attribute key -> how many candidate claims wait on it: only the section's own, only
+    # those with a value and at least one citation. Use this one; `has_candidates`, which
+    # QGIS shows, counts any candidate and so can be true where this is empty.
     candidates: dict[str, int]
     # the years of the map sheets that show the section's route, oldest first
     shown_years: list[int]

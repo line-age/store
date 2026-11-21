@@ -84,11 +84,14 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
                           'inherited_from', nullif(sc.feature_id, sc.section_id)) AS fact
                FROM scope sc
                JOIN store.claim c ON c.feature_id = sc.feature_id AND c.status = 'accepted'
-               LEFT JOIN LATERAL (
-                   SELECT min(s.as_of_edtf COLLATE "C") AS as_of
+               LEFT JOIN LATERAL (   -- the earliest sheet by its year, so `~1931` comes before `1937`
+                   SELECT s.as_of_edtf AS as_of
                    FROM store.claim_citation cc JOIN store.citation ci ON ci.id = cc.citation_id
                    JOIN store.source s ON s.id = ci.source_id
-                   WHERE cc.claim_id = c.id AND cc.role = 'map_shows' AND s.kind = 'map_sheet') sh ON true
+                   WHERE cc.claim_id = c.id AND cc.role = 'map_shows' AND s.kind = 'map_sheet'
+                     AND s.as_of_edtf IS NOT NULL
+                   ORDER BY substring(s.as_of_edtf FROM '[0-9]{4}')::int NULLS LAST, s.as_of_edtf COLLATE "C"
+                   LIMIT 1) sh ON true
                WHERE EXISTS (SELECT 1 FROM store.claim_citation cc WHERE cc.claim_id = c.id)
                  AND (c.attribute_key <> 'route' OR c.value_geom IS NOT NULL)
            ),
@@ -121,24 +124,24 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
            gone AS (   -- a removal a person linked to the section: the sheet that leaves it out
                SELECT sc.section_id, min(substring(s.as_of_edtf FROM '[0-9]{4}')::int) AS year
                FROM scope sc
+               -- the accepted decommissioned claim cited map_omits that makes the feature a removal
                JOIN store.claim c ON c.feature_id = sc.feature_id AND c.attribute_key = 'status'
-                   AND c.status = 'accepted'
+                   AND c.value_text = 'decommissioned' AND c.status = 'accepted'
                JOIN store.claim_citation cc ON cc.claim_id = c.id AND cc.role = 'map_omits'
                JOIN store.citation ci ON ci.id = cc.citation_id
                JOIN store.source s ON s.id = ci.source_id
                WHERE sc.feature_id <> sc.section_id
                  AND s.kind = 'map_sheet' AND s.as_of_edtf ~ '[0-9]{4}'
-                 AND EXISTS (   -- the feature is a removal (store.removal)
-                     SELECT 1 FROM store.claim d
-                     JOIN store.claim_citation dc ON dc.claim_id = d.id AND dc.role = 'map_omits'
-                     WHERE d.feature_id = sc.feature_id AND d.attribute_key = 'status'
-                       AND d.value_text = 'decommissioned')
                GROUP BY sc.section_id
            ),
-           cut AS (    -- a proposed cut: the drawn row is the route without it
+           cut AS (    -- a proposed cut, as store.proposed_end has it: the drawn row is the route without it
                SELECT DISTINCT l.to_feature_id AS section_id
                FROM ids JOIN store.feature_link l ON l.to_feature_id = ids.id
+               JOIN store.section rs ON rs.feature_id = l.from_feature_id
                WHERE l.relation = 'overlaps' AND l.status = 'proposed'
+                 AND EXISTS (   -- the removal has a route to cut with
+                     SELECT 1 FROM store.claim d
+                     WHERE d.feature_id = l.from_feature_id AND d.attribute_key = 'route' AND d.status = 'accepted')
                  AND EXISTS (   -- a standing removal (store.removal)
                      SELECT 1 FROM store.claim d
                      JOIN store.claim_citation dc ON dc.claim_id = d.id AND dc.role = 'map_omits'
