@@ -42,6 +42,11 @@ class AcceptedClaim(BaseModel):
     inherited_from: uuid.UUID | None   # set when the claim is another feature's, through a confirmed link
 
 
+class Tracer(BaseModel):
+    id: uuid.UUID
+    name: str
+
+
 class Summary(BaseModel):
     """What `/sections?include=summary` adds to each row: the contract Studio relies on."""
     accepted: dict[str, list[AcceptedClaim]]
@@ -50,6 +55,7 @@ class Summary(BaseModel):
     gone_year: int | None
     created_at: dt.datetime
     whole_route: dict[str, Any] | None
+    traced_by: Tracer | None       # the person who asserted its current route; never a tool
 
 
 def traced(api, ends=(HOBBS, JAL), year=1937, as_of=SHEET_1937, network="gas"):
@@ -265,6 +271,25 @@ def test_summary_only_when_asked(api):
     assert not set(Summary.model_fields) & set(plain["properties"])
     api["ann"].get("/sections", expect=422, include="everything")
     api["ann"].get("/sections", expect=422, bbox="1,2,3")
+
+
+def test_traced_by_is_the_person_who_asserted_the_route(api, sql):
+    section = traced(api)
+    ann = sql.execute("SELECT id FROM store.agent WHERE github_login = 'ann'").fetchone()["id"]
+    assert props(api["ann"], section)["traced_by"] == {"id": str(ann), "name": "Ann Example"}
+    # a later claim by someone else, or by a tool, does not change who traced it
+    inches(api["cite"], section, 12, by("1951"))
+    inches(api["bob"], section, 10, by("1950"))
+    assert props(api["ann"], section)["traced_by"]["name"] == "Ann Example"
+    # a route a tool asserted names nobody
+    tool = sql.execute("SELECT id FROM store.agent WHERE kind = 'pipeline' LIMIT 1").fetchone()["id"]
+    sql.execute("ALTER TABLE store.claim DISABLE TRIGGER USER")
+    try:
+        sql.execute("UPDATE store.claim SET asserted_by = %s WHERE feature_id = %s AND attribute_key = 'route'",
+                    (tool, section))
+    finally:
+        sql.execute("ALTER TABLE store.claim ENABLE TRIGGER USER")
+    assert props(api["ann"], section)["traced_by"] is None
 
 
 def test_section_with_only_an_uncited_route(api, sql):

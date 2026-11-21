@@ -69,8 +69,10 @@ def section_summaries(conn: Connection, ids: list[uuid.UUID]) -> dict[uuid.UUID,
     claims = defaultdict(list)
     for c in conn.execute(
             """SELECT c.id, c.feature_id, c.attribute_key, c.status, c.value_text, c.value_num, c.value_unit,
-                      c.valid_edtf, c.created_at, c.value_geom IS NOT NULL AS has_geom
-               FROM store.claim c WHERE c.feature_id = ANY(%s) AND c.status IN ('accepted', 'candidate')""",
+                      c.valid_edtf, c.created_at, c.value_geom IS NOT NULL AS has_geom,
+                      a.id AS asserted_by, a.name AS asserted_by_name, a.kind AS asserted_by_kind
+               FROM store.claim c JOIN store.agent a ON a.id = c.asserted_by
+               WHERE c.feature_id = ANY(%s) AND c.status IN ('accepted', 'candidate')""",
             (owners,)):
         claims[c["feature_id"]].append(c)
     cites = defaultdict(list)
@@ -111,6 +113,9 @@ def summarise(section: uuid.UUID, scope: list[uuid.UUID], claims: dict[uuid.UUID
     - `gone_year`: the year of the sheet that leaves it out, once a person confirmed which
       removal ended it (the removal is then in its scope).
     - `whole_route`: its route as traced, when a proposed cut draws it in pieces.
+    - `traced_by`: the person who asserted its current route, by id and name; null when
+      it has no accepted route or a tool asserted it. A list can then be narrowed to one
+      tracer's sections without asking for each section.
 
     A sheet's year is the first four digits of its date as given; a date without four
     digits (`193X`) gives no year."""
@@ -146,8 +151,11 @@ def summarise(section: uuid.UUID, scope: list[uuid.UUID], claims: dict[uuid.UUID
     routes = [c for c in own if c["status"] == "accepted" and c["attribute_key"] == "route"]
     route = max(routes, key=lambda c: (c["created_at"], c["id"]), default=None)
     years = sorted({y for y in map(_year, sheets(route, "map_shows")) if y is not None}) if route else []
+    tracer = ({"id": route["asserted_by"], "name": route["asserted_by_name"]}
+              if route and route["asserted_by_kind"] == "person" else None)
     return {"created_at": created_at, "accepted": dict(accepted), "candidates": dict(candidates),
-            "shown_years": years, "gone_year": min(gone, default=None), "whole_route": whole_route}
+            "shown_years": years, "gone_year": min(gone, default=None), "whole_route": whole_route,
+            "traced_by": tracer}
 
 
 def feature_ids(conn: Connection, network: str | None, kind: str | None, limit: int) -> list[uuid.UUID]:
