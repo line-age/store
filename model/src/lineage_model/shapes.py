@@ -16,7 +16,6 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, model_validator
 
 __all__ = [
-    "AcceptedClaim",
     "AgentIn",
     "Bundle",
     "BundleResult",
@@ -29,7 +28,6 @@ __all__ = [
     "ClaimReviewIn",
     "ClaimStatus",
     "ExternalKey",
-    "FeatureDetail",
     "FeatureIn",
     "FeatureKind",
     "LinkIn",
@@ -38,7 +36,6 @@ __all__ = [
     "LinkStatus",
     "Network",
     "ReplacementIn",
-    "SectionRow",
     "SourceIn",
     "SourceKind",
 ]
@@ -200,61 +197,3 @@ class CitationRequestDone(BaseModel):
     status: Literal["done", "failed"]
     run: dict[str, Any] | None = None
     error: str | None = None
-
-
-# Reads -----------------------------------------------------------------------------------
-# What the read endpoints return beyond what each row of the database holds: the documented
-# contract a client may rely on, which the tests validate every response against. The API
-# builds its responses as plain dicts and does not use these. Extra fields are allowed:
-# they describe what a client may rely on, not everything sent.
-
-
-class AcceptedClaim(BaseModel):
-    """One accepted claim with at least one citation, raw: a client words the value."""
-    claim_id: uuid.UUID
-    value_text: str | None = None
-    value_num: float | None = None
-    value_unit: str | None = None
-    valid_edtf: str | None = None
-    created_at: dt.datetime
-    # The earliest date of a map sheet cited as showing the line, as the sheet gives it.
-    shown_as_of: str | None = None
-    # Set when the claim is another feature's, reached through a confirmed link.
-    inherited_from: uuid.UUID | None = None
-
-
-class SectionRow(BaseModel, extra="allow"):
-    """The properties of one `/sections` row: one drawn section, or one proposed piece of it.
-    `row_id` is the section's id, or for a piece the id of the link that proposes the cut."""
-    row_id: uuid.UUID
-    section_id: uuid.UUID
-    label: str | None = None
-    network: Network | None = None
-    time_end: dt.date | None = None
-    end_status: Literal["confirmed", "proposed"] | None = None
-    line_id: uuid.UUID | None = None
-    # attribute key -> accepted claims, newest first; the section's own and those it has
-    # through confirmed links (store's scope)
-    accepted: dict[str, list[AcceptedClaim]]
-    # attribute key -> how many candidate claims wait on it: only the section's own, only
-    # those with a value and at least one citation. Use this one; `has_candidates`, which
-    # QGIS shows, counts any candidate and so can be true where this is empty.
-    candidates: dict[str, int]
-    # the years of the map sheets that show the section's route, oldest first
-    shown_years: list[int]
-    # the year of the sheet that no longer shows it, once a person confirmed its removal
-    gone_year: int | None = None
-    created_at: dt.datetime | None = None
-    # the route as traced where a proposed cut makes each row of the section a part of it;
-    # null on a section no cut touches
-    whole_route: dict[str, Any] | None = None
-
-
-class FeatureDetail(BaseModel, extra="allow"):
-    """One feature as `/features/{id}` and `/features?ids=` give it."""
-    id: uuid.UUID
-    kind: FeatureKind
-    claims: list[dict[str, Any]]
-    # claims of other features reached through confirmed links, each with `inherited_from`
-    inherited_claims: list[dict[str, Any]]
-    links: list[dict[str, Any]]

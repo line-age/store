@@ -3,7 +3,6 @@
 from .attributes import ATTRIBUTES, Attribute
 from .edtf import Valid, began, began_between, by, first_day, last_day
 from .shapes import (
-                     AcceptedClaim,
                      AgentIn,
                      Bundle,
                      BundleResult,
@@ -16,7 +15,6 @@ from .shapes import (
                      ClaimReviewIn,
                      ClaimStatus,
                      ExternalKey,
-                     FeatureDetail,
                      FeatureIn,
                      FeatureKind,
                      LinkIn,
@@ -25,14 +23,12 @@ from .shapes import (
                      LinkStatus,
                      Network,
                      ReplacementIn,
-                     SectionRow,
                      SourceIn,
                      SourceKind,
 )
 
 __all__ = [
                      "ATTRIBUTES",
-                     "AcceptedClaim",
                      "AgentIn",
                      "Attribute",
                      "Bundle",
@@ -46,7 +42,6 @@ __all__ = [
                      "ClaimReviewIn",
                      "ClaimStatus",
                      "ExternalKey",
-                     "FeatureDetail",
                      "FeatureIn",
                      "FeatureKind",
                      "LinkIn",
@@ -55,7 +50,6 @@ __all__ = [
                      "LinkStatus",
                      "Network",
                      "ReplacementIn",
-                     "SectionRow",
                      "SourceIn",
                      "SourceKind",
                      "Valid",
