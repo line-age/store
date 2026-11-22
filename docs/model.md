@@ -190,9 +190,14 @@ Not drawn:
   duplicating anything.
 - **`AGENT_TOKEN`** (pipeline API tokens, hashed; some may assert claims for another agent,
   for importers) and **`AGENT_ROLE`** (a database role used from QGIS -> its person).
-- **Rules the database enforces:** a claim's value fits its attribute; a claim has a
-  citation by commit time (I-0002); claims and links are never edited, only their status
-  moves; a link's ends are the feature kinds its relation allows.
+- **Rules the database enforces:** a claim has a citation by commit time (I-0002); claims
+  and links are never edited, only their status moves; a link's ends are the feature kinds
+  its relation allows.
+- **Rules store's code enforces:** a claim's value fits its attribute (the attribute applies
+  to the feature's kind and network, the value is of its type, an enum value is one of its
+  words), checked by `lineage_model.claim_problem` on every claim write, from the registry
+  below. A write that does not go through store's API (QGIS, straight to PostGIS) is not
+  checked for this.
 
 ## Attributes (starting set)
 

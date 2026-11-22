@@ -1,9 +1,11 @@
-"""The attribute registry (docs/model.md, "Attributes"). The first migration seeds the same
-rows; a test checks the two agree."""
+"""The attribute registry (docs/model.md, "Attributes"), and what a claim's value may be.
+The first migration seeds the same rows; a test checks the two agree. Store checks every
+claim against `claim_problem` before writing it (`lineage_store.writes.insert_claim`)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -36,3 +38,26 @@ ATTRIBUTES: dict[str, Attribute] = {a.key: a for a in [
     Attribute("serves", "feature", "many", ("station",)),
     Attribute("flow_direction", "enum", "one", ("edge",), None, ("forward", "reverse", "both")),
 ]}
+
+
+_VALUE_FIELD = {"text": "value_text", "enum": "value_text", "quantity": "value_num",
+                "geometry": "value_geom", "feature": "value_feature"}
+
+
+def claim_problem(key: str, feature_kind: str, feature_network: str | None,
+                  value: dict[str, Any]) -> str | None:
+    """Why a claim of `key` with `value` cannot sit on a feature of this kind and network, in
+    words for the caller, or None when it fits. `value` holds the claim's `value_*` fields.
+    An attribute the registry does not hold is not judged here."""
+    a = ATTRIBUTES.get(key)
+    if a is None:
+        return None
+    if feature_kind not in a.feature_kinds:
+        return f"{key} does not apply to a {feature_kind}"
+    if a.networks is not None and feature_network not in a.networks:
+        return f"{key} does not apply to the {feature_network} network"
+    if value.get(_VALUE_FIELD[a.value_type]) is None:
+        return f"{key} needs a {a.value_type} value"
+    if a.value_type == "enum" and value["value_text"] not in (a.enum_values or ()):
+        return f"{value['value_text']} is not a value of {key} ({', '.join(a.enum_values or ())})"
+    return None

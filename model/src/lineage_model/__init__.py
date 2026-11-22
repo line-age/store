@@ -1,6 +1,6 @@
 """The Lineage store model: registry, enums, dates and API shapes."""
 
-from .attributes import ATTRIBUTES, Attribute
+from .attributes import ATTRIBUTES, Attribute, claim_problem
 from .edtf import Valid, began, began_between, by, first_day, last_day
 from .shapes import (
                      AgentIn,
@@ -56,6 +56,7 @@ __all__ = [
                      "began",
                      "began_between",
                      "by",
+                     "claim_problem",
                      "first_day",
                      "last_day",
 ]
