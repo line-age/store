@@ -17,6 +17,8 @@ def test_registry_matches_migration(sql):
         assert (r["value_type"], r["cardinality"], tuple(r["feature_kinds"])) == (a.value_type, a.cardinality, a.feature_kinds)
         assert (tuple(r["networks"]) if r["networks"] else None) == a.networks
         assert (tuple(r["enum_values"]) if r["enum_values"] is not None else None) == a.enum_values
+        assert (tuple(r["units"]) if r["units"] is not None else None) == a.units
+        assert (float(r["min_value"]) if r["min_value"] is not None else None) == a.min_value
 
 
 def test_commodity_claims_are_refused(api):
@@ -76,6 +78,36 @@ def test_value_must_fit_attribute(api):
         {"feature": section, "attribute": "voltage", "value_num": 69, "value_unit": "kV",
          "citations": [{"citation": "c", "role": "states"}]}]}
     assert "the gas network" in api["ann"].post("/bundles", volts, expect=422)["detail"]
+
+
+def test_a_quantity_needs_its_unit_and_a_value_above_its_bound(api):
+    s = sheet(api["ann"], 1937, "1937")
+    section, _ = trace(api["ann"], s, line(HOBBS, JAL), as_of="1937")
+
+    def diameter(**value):
+        return {"citations": [{"ref": "c", "source": s}], "claims": [
+            {"feature": section, "attribute": "diameter", **value,
+             "citations": [{"citation": "c", "role": "states"}]}]}
+
+    assert "needs a unit, one of (in, mm)" in api["ann"].post(
+        "/bundles", diameter(value_num=12), expect=422)["detail"]
+    assert "needs a unit, one of (in, mm)" in api["ann"].post(
+        "/bundles", diameter(value_num=12, value_unit="parsec"), expect=422)["detail"]
+    assert "must be more than 0" in api["ann"].post(
+        "/bundles", diameter(value_num=0, value_unit="in"), expect=422)["detail"]
+    assert "must be more than 0" in api["ann"].post(
+        "/bundles", diameter(value_num=-4, value_unit="in"), expect=422)["detail"]
+    api["ann"].post("/bundles", diameter(value_num=12, value_unit="in"))
+    api["ann"].post("/bundles", diameter(value_num=300, value_unit="mm"))
+
+
+def test_the_contract_is_the_registry():
+    from lineage_model.attributes import contract
+    rows = {a["key"]: a for a in contract()["attributes"]}
+    assert rows.keys() == ATTRIBUTES.keys()
+    assert rows["diameter"]["units"] == ["in", "mm"] and rows["diameter"]["min_value"] == 0
+    assert rows["status"]["enum_values"][3] == "operational"
+    assert rows["name"]["units"] is None and rows["name"]["networks"] is None
 
 
 def test_machine_claims_start_as_candidates(api):

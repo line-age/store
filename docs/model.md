@@ -88,6 +88,8 @@ erDiagram
         text_arr feature_kinds
         text_arr networks
         text_arr enum_values "enum attributes"
+        text_arr units "quantity: allowed units"
+        numeric min_value "quantity: must be above"
     }
     CLAIM {
         uuid id PK
@@ -211,12 +213,18 @@ Not drawn:
 | `status` | all | enum: proposed, permitted, under_construction, operational, maintenance, decommissioned | one |
 | `route` | section | geometry (LineString) | one |
 | `location` | station, node | geometry (Point) or place text | one |
-| `diameter` | section (pipelines) | quantity | one |
-| `voltage` | section (electric) | quantity | one |
-| `gauge`, `lanes` | section (road, rail) | quantity | one |
+| `diameter` | section (pipelines) | quantity, in `in` or `mm`, above 0 | one |
+| `voltage` | section (electric) | quantity, above 0 | one |
+| `gauge`, `lanes` | section (road, rail) | quantity, above 0 | one |
 | `station_kind` | station | enum: pump, compressor, substation, terminal, intake, delivery | one |
 | `serves` | station | feature (section) | many |
 | `flow_direction` | edge | enum: forward, reverse, both (relative to from/to) | one |
+
+These are also the one set of rules for what a value may be, for store and every client.
+The database refuses a claim that breaks them, whoever writes it (`claim_fits_attribute`).
+A client checks its own writes against the same registry as JSON:
+`python -m lineage_model.attributes` writes it, and Studio and its Agent vendor that file.
+A diameter needs its unit because the sources give both inches and millimetres.
 
 `commodity` has no allowed values yet, so the store refuses every commodity claim. A
 feature's `network` already says what it carries in nearly every case; the attribute stays
