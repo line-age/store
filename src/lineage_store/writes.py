@@ -18,6 +18,7 @@ from lineage_model import (
     ClaimReviewIn,
     ExternalKey,
     LinkReviewIn,
+    claim_problem,
 )
 from psycopg import Connection
 
@@ -165,12 +166,20 @@ def insert_claim(conn: Connection, who: Principal, c: ClaimIn, resolve) -> uuid.
     status = c.status or ("accepted" if kind == "person" else "candidate")
     if status == "accepted" and kind != "person":
         raise HTTPException(422, "a machine's claim starts as a candidate; a person accepts it (I-0004)")
+    feature_id = resolve(c.feature)
+    feature = conn.execute("SELECT kind, network FROM store.feature WHERE id = %s", (feature_id,)).fetchone()
+    if feature:  # an unknown feature is refused by the database's reference check
+        problem = claim_problem(c.attribute, feature["kind"], feature["network"],
+                                {"value_text": c.value_text, "value_num": c.value_num,
+                                 "value_geom": c.value_geom, "value_feature": c.value_feature})
+        if problem:
+            raise HTTPException(422, problem)
     rid = conn.execute(
         f"""INSERT INTO store.claim (feature_id, attribute_key, value_text, value_num, value_unit, value_geom,
                                     value_feature_id, valid_edtf, start_earliest, start_latest, end_earliest,
                                     end_latest, status, asserted_by, request_id)
             VALUES (%s, %s, %s, %s, %s, {GEOM}, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-        (resolve(c.feature), c.attribute, c.value_text, c.value_num, c.value_unit, _geojson(c.value_geom),
+        (feature_id, c.attribute, c.value_text, c.value_num, c.value_unit, _geojson(c.value_geom),
          resolve(c.value_feature), c.valid_edtf, c.start_earliest, c.start_latest, c.end_earliest,
          c.end_latest, status, agent, c.request_id)).fetchone()["id"]
     for cc in c.citations:
