@@ -143,3 +143,30 @@ def test_label_follows_the_accepted_name(api, sql):
         "feature": ln, "attribute": "name", "value_text": "Example system",
         "start_earliest": "1948-01-01", "citations": [{"citation": cite, "role": "states"}]}]})
     assert label(ln) == "Example system"
+
+
+def test_label_when_a_name_has_no_date_is_rejected_or_corrected(api, sql):
+    """An undated name ranks after any dated one, so a rename with no date leaves a dated
+    name as the label until that name is rejected. Rejecting the last accepted name leaves
+    no label; correcting a name puts the replacement in its place."""
+    def label(ln):
+        return sql.execute("SELECT label FROM store.feature WHERE id = %s", (ln,)).fetchone()["label"]
+
+    j = api["ann"].post("/bundles", {"sources": [{"ref": "j", "kind": "issue", "title": "made-up journal"}],
+                                     "citations": [{"ref": "c", "source": "j", "locator": "p. 3"}]})
+    cite = [{"citation": str(j["ids"]["c"]), "role": "states"}]
+    ln = new_line(api["ann"])
+    dated = api["ann"].post("/bundles", {"claims": [{
+        "ref": "n", "feature": ln, "attribute": "name", "value_text": "Example line",
+        "start_earliest": "1931-01-01", "citations": cite}]})["ids"]["n"]
+    undated = api["ann"].post("/bundles", {"claims": [{
+        "ref": "n", "feature": ln, "attribute": "name", "value_text": "Example renamed", "citations": cite}]})["ids"]["n"]
+    assert label(ln) == "Example line"                           # the dated name still leads
+    api["ann"].post(f"/claims/{dated}/reviews", {"verdict": "reject"})
+    assert label(ln) == "Example renamed"                        # once it goes, the undated one
+    out = api["ann"].post(f"/claims/{undated}/reviews", {"verdict": "correct", "replacement": {
+        "value_text": "Example corrected", "citations": cite}})
+    assert out["replaced_by_claim_id"] and label(ln) == "Example corrected"
+    corrected = out["replaced_by_claim_id"]
+    api["ann"].post(f"/claims/{corrected}/reviews", {"verdict": "reject"})
+    assert label(ln) is None                                     # no accepted name, no label

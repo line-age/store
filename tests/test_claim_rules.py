@@ -5,7 +5,12 @@ All data is made up (L-0009)."""
 
 from __future__ import annotations
 
+import psycopg
+import pytest
+from lineage_model import claim_problem
 from test_scenarios import HOBBS, JAL, SHEET_1937, line, sheet, trace
+
+from lineage_store.db import STORE_AGENT
 
 
 def _setup(api):
@@ -84,3 +89,33 @@ def test_a_correction_is_held_to_the_same_rules(api):
     claim_id = str(api["ann"].post("/bundles", _claim(s, section, attribute="owner", value_text="Example Gas Co."))["ids"]["k"])
     bad = {"verdict": "correct", "replacement": {"value_text": None}}
     assert api["ann"].post(f"/claims/{claim_id}/reviews", bad, expect=422)["detail"] == "owner needs a text value"
+
+
+def test_the_database_says_the_same_as_stores_code(api, sql):
+    """The trigger `claim_fits_attribute` stays as the database's own check, and the API never
+    reaches it now that store's code checks first. Writing straight to the database holds the
+    two to the same rules and the same words."""
+    _, section = _setup(api["ann"])
+    made = api["ann"].post("/bundles", {"features": [{"ref": "l", "kind": "line", "network": "gas"},
+                                                     {"ref": "st", "kind": "station", "network": "gas"}]})
+    features = {"section": section, "line": str(made["ids"]["l"]), "station": str(made["ids"]["st"])}
+    cases = [
+        ("diameter", "line", {"value_num": 12}),
+        ("voltage", "section", {"value_num": 69}),
+        ("owner", "section", {}),
+        ("diameter", "section", {"value_text": "twelve"}),
+        ("route", "section", {}),
+        ("serves", "station", {}),
+        ("status", "section", {}),
+        ("status", "section", {"value_text": "abandoned-ish"}),
+        ("commodity", "section", {"value_text": "natural"}),
+    ]
+    for key, kind, value in cases:
+        expected = claim_problem(key, kind, "gas", value)
+        assert expected, (key, kind, value)
+        with pytest.raises(psycopg.errors.RaiseException) as raised:
+            sql.execute(
+                "INSERT INTO store.claim (feature_id, attribute_key, value_text, value_num, status, asserted_by) "
+                "VALUES (%s, %s, %s, %s, 'candidate', %s)",
+                (features[kind], key, value.get("value_text"), value.get("value_num"), STORE_AGENT))
+        assert raised.value.diag.message_primary == expected

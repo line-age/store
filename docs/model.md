@@ -197,7 +197,9 @@ Not drawn:
 - **Rules store's code checks too:** a claim's value fits its attribute, checked by
   `lineage_model.claim_problem` on every claim write before it reaches the database, with
   the same words; and a line's `label` is its accepted `name`, set whenever a name claim is
-  written or decided through the API.
+  written or decided through the API: the name in force latest, then the one written last.
+  An undated name ranks after any dated one, so a rename with no date replaces a dated name
+  only once that name is rejected.
 - **Membership is identity, not time** (settled 2026-11-15, scenarios case 9). A line is
   the same pipe through its life; a sale or absorption into another system is a dated
   `owner` or `operator` claim, not a new membership. So moving a section to another line,
