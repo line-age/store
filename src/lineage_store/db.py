@@ -13,12 +13,18 @@ STORE_AGENT = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 class Database:
     def __init__(self, url: str):
-        self.pool = ConnectionPool(url, kwargs={"row_factory": dict_row}, open=True, min_size=1, max_size=10)
+        # A connection the database closed (a restart, a dropped link) is found and replaced
+        # when it is taken, instead of failing every request until the API restarts.
+        self.pool = ConnectionPool(url, kwargs={"row_factory": dict_row}, open=True, min_size=1, max_size=10,
+                                   check=ConnectionPool.check_connection)
 
     @contextmanager
     def read(self):
+        """A read-only transaction on one snapshot, so a read that takes several statements
+        (a row and its summary, a claim and its reviews) never sees a commit land between
+        them. Read-only transactions never fail to serialize, so nothing needs retrying."""
         with self.pool.connection() as conn, conn.transaction():
-            conn.execute("SET TRANSACTION READ ONLY")
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             yield conn
 
     @contextmanager

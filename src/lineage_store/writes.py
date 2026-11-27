@@ -287,7 +287,7 @@ def _split(conn: Connection, who: Principal, link: dict, cut: dict | None) -> di
     section, removal = link["to_feature_id"], link["from_feature_id"]
     route = conn.execute(
         "SELECT id, value_geom FROM store.claim WHERE feature_id = %s AND attribute_key = 'route' "
-        "AND status = 'accepted' ORDER BY created_at DESC LIMIT 1", (section,)).fetchone()
+        "AND status = 'accepted' ORDER BY created_at DESC, id DESC LIMIT 1", (section,)).fetchone()
     if not route:
         raise HTTPException(409, "the section has no accepted route to cut")
     if cut is not None:
@@ -304,7 +304,7 @@ def _split(conn: Connection, who: Principal, link: dict, cut: dict | None) -> di
                       ST_AsGeoJSON(ST_Multi(ST_CollectionExtract(store.away(s.g, r.value_geom), 2))) AS rest
                FROM (SELECT %s::geometry AS g) s,
                     (SELECT value_geom FROM store.claim WHERE feature_id = %s AND attribute_key = 'route'
-                     AND status = 'accepted' ORDER BY created_at DESC LIMIT 1) r""",
+                     AND status = 'accepted' ORDER BY created_at DESC, id DESC LIMIT 1) r""",
             (route["value_geom"], removal)).fetchone()
     feat = conn.execute("SELECT network FROM store.feature WHERE id = %s", (section,)).fetchone()
     cites = conn.execute("SELECT citation_id, role FROM store.claim_citation WHERE claim_id = %s",
