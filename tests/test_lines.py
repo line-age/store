@@ -67,6 +67,34 @@ def test_move_is_one_bundle(api, sql):
     api["ann"].post("/links/" + link_id(sql, s, b) + "/reviews", {"verdict": "reject"}, expect=409)
 
 
+def test_a_move_sent_twice_is_one_move(api, sql):
+    """A caller that lost the answer sends the same bundle again: the decision it asks for
+    is already made, so it is not an error and nothing is written twice."""
+    s, a, b = section(api["ann"]), new_line(api["ann"]), new_line(api["ann"])
+    api["ann"].post("/bundles", {"links": [{"from": s, "to": a, "relation": "part_of", "status": "confirmed"}]})
+    old = link_id(sql, s, a)
+    move = {"reviews": [{"link": old, "verdict": "reject", "note": "wrong line"}],
+            "links": [{"ref": "m", "from": s, "to": b, "relation": "part_of", "status": "confirmed",
+                       "external_key": {"system": "test", "key": "move:twice"}}]}
+    first = api["ann"].post("/bundles", move)
+    again = api["ann"].post("/bundles", move)
+    assert again["ids"] == first["ids"] and links_of(sql, s) == {a: "rejected", b: "confirmed"}
+    assert sql.execute("SELECT count(*) AS n FROM store.review WHERE link_id = %s", (old,)).fetchone()["n"] == 1
+    # the opposite decision on a decided link is still refused
+    api["ann"].post("/bundles", {"reviews": [{"link": old, "verdict": "confirm"}]}, expect=409)
+
+
+def test_a_move_between_two_existing_links_in_any_order(api, sql):
+    """Confirming a proposed membership and rejecting the confirmed one, listed in either
+    order: the reject is applied first, or the section would be in two lines for a moment."""
+    s, a, b = section(api["ann"]), new_line(api["ann"]), new_line(api["ann"])
+    api["ann"].post("/bundles", {"links": [{"from": s, "to": a, "relation": "part_of", "status": "confirmed"}]})
+    api["trace"].post("/bundles", {"links": [{"from": s, "to": b, "relation": "part_of", "score": 0.8}]})
+    api["ann"].post("/bundles", {"reviews": [{"link": link_id(sql, s, b), "verdict": "confirm"},
+                                             {"link": link_id(sql, s, a), "verdict": "reject"}]})
+    assert links_of(sql, s) == {a: "rejected", b: "confirmed"}
+
+
 def test_start_a_new_line_from_a_section(api, sql):
     s, a = section(api["ann"]), new_line(api["ann"])
     api["ann"].post("/bundles", {"links": [{"from": s, "to": a, "relation": "part_of", "status": "confirmed"}]})
@@ -170,3 +198,18 @@ def test_label_when_a_name_has_no_date_is_rejected_or_corrected(api, sql):
     corrected = out["replaced_by_claim_id"]
     api["ann"].post(f"/claims/{corrected}/reviews", {"verdict": "reject"})
     assert label(ln) is None                                     # no accepted name, no label
+
+
+
+def test_two_names_written_together_give_one_label(api, sql):
+    """Claims of one bundle share `created_at`; the id settles which name is the label."""
+    j = api["ann"].post("/bundles", {"sources": [{"ref": "j", "kind": "issue", "title": "made-up journal"}],
+                                     "citations": [{"ref": "c", "source": "j", "locator": "p. 3"}]})
+    cite = [{"citation": str(j["ids"]["c"]), "role": "states"}]
+    for _ in range(8):
+        ln = new_line(api["ann"])
+        ids = api["ann"].post("/bundles", {"claims": [
+            {"ref": n, "feature": ln, "attribute": "name", "value_text": n, "citations": cite}
+            for n in ("Example one", "Example two")]})["ids"]
+        last = max(ids, key=lambda n: uuid.UUID(str(ids[n])))
+        assert sql.execute("SELECT label FROM store.feature WHERE id = %s", (ln,)).fetchone()["label"] == last

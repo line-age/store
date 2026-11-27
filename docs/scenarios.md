@@ -394,7 +394,8 @@ A section is in at most one line (a partial unique index, answered as 409). A li
 same pipe through its life: when the Hobbs line is sold, that is a dated `owner` claim on
 the line, not a new membership. So if `4c1e` turns out to belong to another line, the old
 link was wrong: a person rejects it and confirms the new one in one bundle (`reviews`
-then `links`). A whole proposed line is confirmed the same way, one review per link; a
+then `links`; among the reviews the rejects are applied first, and a review that asks for
+what the link already is changes nothing, so the same bundle may be sent again). A whole proposed line is confirmed the same way, one review per link; a
 section already in another line stays out of that bundle and keeps its proposal beside
 its membership until a person moves it. Until `7b20`'s
 link is confirmed, `7b20` is released with no line.

@@ -133,12 +133,17 @@ def apply_bundle(conn: Connection, who: Principal, b: Bundle) -> BundleResult:
 
     if b.reviews:
         _person(who)
-    for r in b.reviews:
-        row = conn.execute("SELECT relation FROM store.feature_link WHERE id = %s", (r.link,)).fetchone()
+    # Rejects first: a move rejects one membership and confirms another, and a section is
+    # never in two lines, whatever order the caller listed them in.
+    for r in sorted(b.reviews, key=lambda r: r.verdict != "reject"):
+        row = conn.execute("SELECT relation, status FROM store.feature_link WHERE id = %s FOR UPDATE",
+                           (r.link,)).fetchone()
         if not row:
             raise HTTPException(404, f"no such link {r.link}")
         if row["relation"] != "part_of":
             raise HTTPException(422, "a bundle decides only part_of links; use POST /links/{id}/reviews")
+        if row["status"] == {"confirm": "confirmed", "reject": "rejected"}[r.verdict]:
+            continue  # already decided so: the same bundle sent again makes nothing twice
         review_link(conn, who, r.link, LinkReviewIn(verdict=r.verdict, note=r.note))
 
     for i, link in enumerate(b.links):
@@ -192,13 +197,15 @@ def insert_claim(conn: Connection, who: Principal, c: ClaimIn, resolve) -> uuid.
 
 def relabel(conn: Connection, feature_id) -> None:
     """A line's label is its accepted name (scenarios, case 9): the one in force latest, then
-    the one written last. Called whenever a name claim is written or decided. A line with no
+    the one written last (of two written together, the larger id). Called whenever a name
+    claim is written or decided. A line with no
     accepted name has no label; any other feature is left alone."""
     conn.execute(
         """UPDATE store.feature f SET label = (
                SELECT c.value_text FROM store.claim c
                WHERE c.feature_id = f.id AND c.attribute_key = 'name' AND c.status = 'accepted'
-               ORDER BY coalesce(c.start_latest, c.start_earliest) DESC NULLS LAST, c.created_at DESC
+               ORDER BY coalesce(c.start_latest, c.start_earliest) DESC NULLS LAST, c.created_at DESC,
+                        c.id DESC
                LIMIT 1)
            WHERE f.id = %s AND f.kind = 'line'""", (feature_id,))
 
