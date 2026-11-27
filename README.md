@@ -81,10 +81,10 @@ Every write names an agent, or the database refuses it.
 
 | | |
 | --- | --- |
-| `POST /bundles` | sources, citations, features, claims and links in one transaction, with local refs and optional external keys |
+| `POST /bundles` | sources, citations, features, claims, `reviews` (a person's decisions on existing `part_of` links) and links in one transaction, with local refs and optional external keys |
 | `POST /agents` | find or create an agent (importers) |
 | `POST /claims/{id}/reviews` | accept, reject, or correct with a replacement claim |
-| `POST /links/{id}/reviews` | confirm or reject; confirming `overlaps` splits the section |
+| `POST /links/{id}/reviews` | confirm or reject; confirming `overlaps` splits the section; a confirmed `part_of` may be rejected (a correction) |
 | `POST /citation-requests`, `POST /citation-requests/next`, `POST /citation-requests/{id}/complete` | Ask AI and bulk requests, and `cite`'s queue |
 | `GET /sections` | GeoJSON from `qgis.sections`, by bbox, date and network. With `include=summary` each row also carries the section's accepted claims (raw, newest first, its own and those through confirmed links), cited candidates per attribute, the years of the sheets that show it, once confirmed the year of the sheet that leaves it out, and `traced_by`: the person who asserted its current route (id and name; null for a tool) |
 | `GET /features` | features in full: by `ids=a,b` (up to 200, in that order, an unknown id left out), or the features of a `network` or `kind` in id order |

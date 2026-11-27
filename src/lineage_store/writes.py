@@ -18,6 +18,7 @@ from lineage_model import (
     ClaimReviewIn,
     ExternalKey,
     LinkReviewIn,
+    claim_problem,
 )
 from psycopg import Connection
 
@@ -130,6 +131,21 @@ def apply_bundle(conn: Connection, who: Principal, b: Bundle) -> BundleResult:
         _remember(conn, c.external_key, "claim", rid)
         done(ref, rid, True)
 
+    if b.reviews:
+        _person(who)
+    # Rejects first: a move rejects one membership and confirms another, and a section is
+    # never in two lines, whatever order the caller listed them in.
+    for r in sorted(b.reviews, key=lambda r: r.verdict != "reject"):
+        row = conn.execute("SELECT relation, status FROM store.feature_link WHERE id = %s FOR UPDATE",
+                           (r.link,)).fetchone()
+        if not row:
+            raise HTTPException(404, f"no such link {r.link}")
+        if row["relation"] != "part_of":
+            raise HTTPException(422, "a bundle decides only part_of links; use POST /links/{id}/reviews")
+        if row["status"] == {"confirm": "confirmed", "reject": "rejected"}[r.verdict]:
+            continue  # already decided so: the same bundle sent again makes nothing twice
+        review_link(conn, who, r.link, LinkReviewIn(verdict=r.verdict, note=r.note))
+
     for i, link in enumerate(b.links):
         ref = ref_of(link, "links", i)
         if (rid := _existing(conn, link.external_key, "link")):
@@ -155,18 +171,43 @@ def insert_claim(conn: Connection, who: Principal, c: ClaimIn, resolve) -> uuid.
     status = c.status or ("accepted" if kind == "person" else "candidate")
     if status == "accepted" and kind != "person":
         raise HTTPException(422, "a machine's claim starts as a candidate; a person accepts it (I-0004)")
+    feature_id = resolve(c.feature)
+    feature = conn.execute("SELECT kind, network FROM store.feature WHERE id = %s", (feature_id,)).fetchone()
+    if feature:  # an unknown feature is refused by the database's reference check
+        problem = claim_problem(c.attribute, feature["kind"], feature["network"],
+                                {"value_text": c.value_text, "value_num": c.value_num,
+                                 "value_geom": c.value_geom, "value_feature": c.value_feature})
+        if problem:
+            raise HTTPException(422, problem)
     rid = conn.execute(
         f"""INSERT INTO store.claim (feature_id, attribute_key, value_text, value_num, value_unit, value_geom,
                                     value_feature_id, valid_edtf, start_earliest, start_latest, end_earliest,
                                     end_latest, status, asserted_by, request_id)
             VALUES (%s, %s, %s, %s, %s, {GEOM}, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-        (resolve(c.feature), c.attribute, c.value_text, c.value_num, c.value_unit, _geojson(c.value_geom),
+        (feature_id, c.attribute, c.value_text, c.value_num, c.value_unit, _geojson(c.value_geom),
          resolve(c.value_feature), c.valid_edtf, c.start_earliest, c.start_latest, c.end_earliest,
          c.end_latest, status, agent, c.request_id)).fetchone()["id"]
     for cc in c.citations:
         conn.execute("INSERT INTO store.claim_citation (claim_id, citation_id, role, confidence) "
                      "VALUES (%s, %s, %s, %s)", (rid, resolve(cc.citation), cc.role, cc.confidence))
+    if c.attribute == "name":
+        relabel(conn, resolve(c.feature))
     return rid
+
+
+def relabel(conn: Connection, feature_id) -> None:
+    """A line's label is its accepted name (scenarios, case 9): the one in force latest, then
+    the one written last (of two written together, the larger id). Called whenever a name
+    claim is written or decided. A line with no
+    accepted name has no label; any other feature is left alone."""
+    conn.execute(
+        """UPDATE store.feature f SET label = (
+               SELECT c.value_text FROM store.claim c
+               WHERE c.feature_id = f.id AND c.attribute_key = 'name' AND c.status = 'accepted'
+               ORDER BY coalesce(c.start_latest, c.start_earliest) DESC NULLS LAST, c.created_at DESC,
+                        c.id DESC
+               LIMIT 1)
+           WHERE f.id = %s AND f.kind = 'line'""", (feature_id,))
 
 
 # Agents -------------------------------------------------------------------------------------
@@ -234,6 +275,8 @@ def review_claim(conn: Connection, who: Principal, claim_id: uuid.UUID, r: Claim
         replaced_by = insert_claim(conn, who, new, lambda x: uuid.UUID(x) if x else None)
     conn.execute("UPDATE store.claim SET status = %s WHERE id = %s",
                  ("accepted" if r.verdict == "accept" else "rejected", claim_id))
+    if claim["attribute_key"] == "name":
+        relabel(conn, claim["feature_id"])
     rid = conn.execute(
         "INSERT INTO store.review (claim_id, reviewer_id, verdict, replaced_by_claim_id, note) "
         "VALUES (%s, %s, %s, %s, %s) RETURNING id",
@@ -246,7 +289,10 @@ def review_link(conn: Connection, who: Principal, link_id: uuid.UUID, r: LinkRev
     link = conn.execute("SELECT * FROM store.feature_link WHERE id = %s FOR UPDATE", (link_id,)).fetchone()
     if not link:
         raise HTTPException(404, "no such link")
-    if link["status"] != "proposed":
+    # A confirmed membership may be rejected: a section belongs to one line for its whole
+    # life, so taking it out or moving it says the membership was wrong (scenarios, case 9).
+    correction = link["relation"] == "part_of" and link["status"] == "confirmed" and r.verdict == "reject"
+    if link["status"] != "proposed" and not correction:
         raise HTTPException(409, f"that link is already {link['status']}")
     out: dict[str, Any] = {}
 
