@@ -320,7 +320,9 @@ def test_two_routes_written_together_agree_everywhere(api, sql):
     current = max(claims, key=uuid.UUID)
     drawn = sql.execute("SELECT claim_id FROM store.section_route WHERE section_id = %s", (section,)).fetchone()
     assert str(drawn["claim_id"]) == current
-    assert props(api["ann"], section)["shown_years"] == [claims[current]]
+    p = props(api["ann"], section)
+    assert p["shown_years"] == [claims[current]]
+    assert p["accepted"]["route"][0]["claim_id"] == current      # and it leads the list
 
 
 def test_features_index_and_batches(api):

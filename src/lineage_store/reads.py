@@ -140,8 +140,9 @@ def summarise(section: uuid.UUID, scope: list[uuid.UUID], claims: dict[uuid.UUID
                 "shown_as_of": shown[0] if shown else None,
                 "inherited_from": feature if feature != section else None})
     for facts in accepted.values():
-        facts.sort(key=lambda f: f["claim_id"])
-        facts.sort(key=lambda f: f["created_at"], reverse=True)
+        # newest first; claims of one bundle share `created_at`, and the id settles it,
+        # as it does for the current route
+        facts.sort(key=lambda f: (f["created_at"], f["claim_id"]), reverse=True)
     own = claims.get(section, ())
     candidates = defaultdict(int)
     for c in own:
